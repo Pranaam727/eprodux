@@ -1,0 +1,5 @@
+opencv-python>=4.9.0
+ultralytics>=8.2.0
+PyYAML>=6.0
+pytest>=8.0
+pytest-timeout>=2.3

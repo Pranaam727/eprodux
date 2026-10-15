@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+.venv/
+venv/
+env/
+.env
+
+# YOLO model weights — obtain via documented procedure, never commit
+*.pt
+*.onnx
+*.engine
+*.torchscript
+
+# Local video files — never commit demo footage or private recordings
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.flv
+*.webm
+
+# Test / coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs and runtime outputs
+*.log
+cv_events_*.jsonl
+
+# Local config overrides (keep example configs committed)
+cv/config/cv.local.yaml
+cv/config/cv.yaml
