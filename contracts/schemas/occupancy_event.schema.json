@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eprodux.internal/schemas/occupancy_event.schema.json",
+  "title": "OccupancyEvent",
+  "description": "Validated computer-vision occupancy detection event. Note: lighting is decoupled and handled via a separate contract; lighting must NOT be reported as a CV detection.",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "description": "Unique event identifier used for idempotent ingestion and deduplication."
+    },
+    "zone_id": {
+      "type": "string",
+      "enum": ["seminar_hall", "classroom", "lab", "office"],
+      "description": "Canonical room or zone identifier."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp with timezone offset when the frame was processed."
+    },
+    "occupancy": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Count of detected occupants. Must be a non-negative integer."
+    },
+    "confidence": {
+      "type": ["number", "null"],
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Detection confidence score between 0.0 and 1.0, or null if unrated."
+    },
+    "source": {
+      "type": "string",
+      "enum": ["recorded-video", "webcam", "rtsp", "mock"],
+      "description": "Origin of the occupancy inference."
+    }
+  },
+  "required": ["event_id", "zone_id", "timestamp", "occupancy", "source"],
+  "additionalProperties": false
+}

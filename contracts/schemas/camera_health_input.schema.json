@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eprodux.internal/schemas/camera_health_input.schema.json",
+  "title": "CameraHealthInput",
+  "description": "Explicit camera health heartbeat or status reporting. Note: an explicitly offline camera forces room occupancy to 'unknown'. A missing heartbeat past the staleness threshold transitions status to 'stale'.",
+  "type": "object",
+  "properties": {
+    "room_id": {
+      "type": "string",
+      "enum": ["seminar_hall", "classroom", "lab", "office"],
+      "description": "Canonical room identifier where the camera is stationed."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp with timezone when health status was evaluated."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["online", "offline"],
+      "description": "Explicitly communicated health state of the camera/stream."
+    },
+    "source": {
+      "type": "string",
+      "description": "Origin of the health telemetry (e.g. cv_service, ping_monitor, mock)."
+    }
+  },
+  "required": ["room_id", "timestamp", "status", "source"],
+  "additionalProperties": false
+}
