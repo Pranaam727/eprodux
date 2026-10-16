@@ -107,9 +107,9 @@ export function LandingFeatures() {
                   key={m}
                   style={{
                     fontSize: '0.68rem',
-                    color: 'var(--accent-blue)',
-                    background: 'rgba(56, 189, 248, 0.08)',
-                    border: '1px solid rgba(56, 189, 248, 0.2)',
+                    color: 'var(--color-accent)',
+                    background: 'rgba(0, 184, 217, 0.10)',
+                    border: '1px solid rgba(0, 184, 217, 0.25)',
                     padding: '2px 8px',
                     borderRadius: 'var(--radius-full)',
                   }}

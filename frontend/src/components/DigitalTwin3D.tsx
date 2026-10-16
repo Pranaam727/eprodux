@@ -111,8 +111,8 @@ export function DigitalTwin3D({
 
     // 1. Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0f1e);
-    scene.fog = new THREE.FogExp2(0x0a0f1e, 0.015);
+    scene.background = new THREE.Color(0x03091f);
+    scene.fog = new THREE.FogExp2(0x03091f, 0.015);
     sceneRef.current = scene;
 
     // 2. Camera
@@ -136,7 +136,7 @@ export function DigitalTwin3D({
     rendererRef.current = renderer;
 
     // 4. Lights
-    const ambientLight = new THREE.AmbientLight(0xdcfce7, 0.45);
+    const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.4);
     scene.add(ambientLight);
 
     const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
@@ -152,14 +152,14 @@ export function DigitalTwin3D({
     dirLight.shadow.camera.bottom = -20;
     scene.add(dirLight);
 
-    const blueRimLight = new THREE.DirectionalLight(0x38bdf8, 0.4);
-    blueRimLight.position.set(-20, 15, -15);
-    scene.add(blueRimLight);
+    const cyanRimLight = new THREE.DirectionalLight(0x00b8d9, 0.55);
+    cyanRimLight.position.set(-20, 15, -15);
+    scene.add(cyanRimLight);
 
-    // 5. Architectural Floor Slab
+    // 5. Architectural Floor Slab (Deep Navy)
     const slabGeo = new THREE.BoxGeometry(30, 0.8, 26);
     const slabMat = new THREE.MeshStandardMaterial({
-      color: 0x111827,
+      color: 0x07132d,
       roughness: 0.7,
       metalness: 0.2,
     });
@@ -169,14 +169,14 @@ export function DigitalTwin3D({
     scene.add(slab);
 
     // Grid on floor
-    const grid = new THREE.GridHelper(30, 30, 0x1e293b, 0x141f36);
+    const grid = new THREE.GridHelper(30, 30, 0x1a2945, 0x0b1b38);
     grid.position.y = 0.02;
     scene.add(grid);
 
     // Corridor indicator
     const corridorGeo = new THREE.PlaneGeometry(28, 2.5);
     const corridorMat = new THREE.MeshBasicMaterial({
-      color: 0x1e2a40,
+      color: 0x0b1b38,
       transparent: true,
       opacity: 0.3,
     });
@@ -531,38 +531,39 @@ export function DigitalTwin3D({
       } else {
         // Standard Digital Twin View
         if (conn === 'offline') {
-          floorColor = 0x2d1515;
-          emissiveColor = 0xef4444;
+          floorColor = 0x220a12;
+          emissiveColor = 0xff5c69;
           emissiveIntensity = 0.15;
-          lightColor = 0xef4444;
+          lightColor = 0xff5c69;
           lightIntensity = 0.2;
         } else if (lightState === 'ON') {
-          floorColor = 0x13302b;
-          emissiveColor = 0x22c55e;
-          emissiveIntensity = 0.12;
-          lightColor = 0x86efac;
+          floorColor = 0x08241c;
+          emissiveColor = 0xa3d900;
+          emissiveIntensity = 0.16;
+          lightColor = 0xa3d900;
           lightIntensity = 1.4;
         } else if (lightState === 'OFF') {
-          floorColor = 0x101726;
-          emissiveColor = 0x38bdf8;
-          emissiveIntensity = 0.02;
-          lightColor = 0x64748b;
+          floorColor = 0x07132d;
+          emissiveColor = 0x00b8d9;
+          emissiveIntensity = 0.03;
+          lightColor = 0x1a2945;
           lightIntensity = 0.15;
         } else {
-          floorColor = 0x272016;
-          emissiveColor = 0xf59e0b;
+          floorColor = 0x1e1b12;
+          emissiveColor = 0xf5b82e;
           emissiveIntensity = 0.08;
-          lightColor = 0xfbbf24;
+          lightColor = 0xf5b82e;
           lightIntensity = 0.6;
         }
       }
 
       // Selection or Hover Highlights
       if (isSelected) {
-        emissiveColor = 0x22c55e;
+        emissiveColor = 0xa3d900;
         emissiveIntensity = Math.max(emissiveIntensity, 0.45);
       } else if (isHovered) {
-        emissiveIntensity = Math.max(emissiveIntensity, 0.25);
+        emissiveColor = 0x00b8d9;
+        emissiveIntensity = Math.max(emissiveIntensity, 0.28);
       }
 
       const mat = mesh.material as THREE.MeshStandardMaterial;

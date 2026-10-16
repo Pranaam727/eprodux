@@ -88,14 +88,16 @@ export function DashboardLayout({
               width: 34,
               height: 34,
               fontSize: '0.9rem',
-              background: 'linear-gradient(135deg, #10b981, #06b6d4)',
+              fontWeight: 800,
+              background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+              color: 'var(--color-bg)',
             }}
           >
             EP
           </div>
           <div>
-            <div style={{ fontSize: '1.05rem', fontWeight: 800 }}>Eprodux</div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-text)' }}>Eprodux</div>
+            <div style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)' }}>
               Sustainability Twin
             </div>
           </div>
@@ -116,9 +118,10 @@ export function DashboardLayout({
                   gap: 12,
                   padding: '10px 14px',
                   borderRadius: 'var(--radius-md)',
-                  background: isActive ? 'var(--accent-green-bg)' : 'transparent',
-                  border: `1px solid ${isActive ? 'var(--border-accent)' : 'transparent'}`,
-                  color: isActive ? 'var(--accent-green)' : 'var(--text-secondary)',
+                  background: isActive ? 'var(--color-card-elevated)' : 'transparent',
+                  border: `1px solid ${isActive ? 'var(--color-border)' : 'transparent'}`,
+                  borderLeft: isActive ? '3px solid var(--color-primary)' : '3px solid transparent',
+                  color: isActive ? 'var(--color-text)' : 'var(--color-text-muted)',
                   fontSize: '0.82rem',
                   fontWeight: isActive ? 700 : 500,
                   cursor: 'pointer',

@@ -28,8 +28,10 @@ export function LandingHeader({ floorState, onOpenUpload, onLaunchDashboard }: P
         <div
           className="brand-logo"
           style={{
-            background: 'linear-gradient(135deg, #10b981, #06b6d4)',
-            boxShadow: '0 0 16px rgba(16, 185, 129, 0.4)',
+            background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+            color: 'var(--color-bg)',
+            fontWeight: 800,
+            boxShadow: '0 0 16px rgba(163, 217, 0, 0.4)',
           }}
         >
           EP
@@ -38,7 +40,7 @@ export function LandingHeader({ floorState, onOpenUpload, onLaunchDashboard }: P
           <div
             className="brand-name"
             style={{
-              background: 'linear-gradient(90deg, #10b981, #38bdf8)',
+              background: 'linear-gradient(90deg, var(--color-primary), var(--color-accent))',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}
@@ -119,7 +121,7 @@ export function LandingHeader({ floorState, onOpenUpload, onLaunchDashboard }: P
           type="button"
           onClick={onLaunchDashboard}
           className="btn btn--primary btn--sm"
-          style={{ boxShadow: '0 0 16px rgba(16, 185, 129, 0.45)' }}
+          style={{ boxShadow: '0 0 16px rgba(163, 217, 0, 0.45)' }}
         >
           ⚡ Launch Dashboard
         </button>

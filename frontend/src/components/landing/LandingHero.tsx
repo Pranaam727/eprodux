@@ -71,16 +71,15 @@ export function LandingHero({
               fontWeight: 800,
               lineHeight: 1.1,
               letterSpacing: '-0.03em',
-              color: '#f8fafc',
+              color: '#F7FAFF',
               marginBottom: 20,
             }}
           >
             Make every building <br />
             <span
               style={{
-                background: 'linear-gradient(90deg, #10b981 0%, #06b6d4 50%, #38bdf8 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                color: '#A3D900',
+                textShadow: '0 0 32px rgba(163, 217, 0, 0.45)',
               }}
             >
               think greener.

@@ -20,12 +20,12 @@ export function LandingFinalCta({ onLaunchDashboard, onOpenUpload }: Props) {
       <div
         className="card"
         style={{
-          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 182, 212, 0.06), rgba(15, 23, 42, 0.9))',
-          border: '1px solid var(--border-accent)',
+          background: 'linear-gradient(135deg, #073D91 0%, #0645A5 50%, #05051A 100%)',
+          border: '1px solid rgba(0, 184, 217, 0.4)',
           borderRadius: 'var(--radius-xl)',
-          padding: '48px 32px',
+          padding: '54px 32px',
           textAlign: 'center',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(16, 185, 129, 0.15)',
+          boxShadow: '0 24px 64px rgba(3, 9, 31, 0.7), 0 0 32px rgba(6, 69, 165, 0.35)',
         }}
       >
         <span className="badge badge--green" style={{ marginBottom: 16 }}>
@@ -38,15 +38,14 @@ export function LandingFinalCta({ onLaunchDashboard, onOpenUpload }: Props) {
             fontWeight: 800,
             lineHeight: 1.2,
             marginBottom: 16,
-            color: '#f8fafc',
+            color: '#F7FAFF',
           }}
         >
           Make your university floor <br />
           <span
             style={{
-              background: 'linear-gradient(90deg, #10b981, #38bdf8)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: '#A3D900',
+              textShadow: '0 0 24px rgba(163, 217, 0, 0.4)',
             }}
           >
             smarter and more sustainable.
@@ -56,7 +55,7 @@ export function LandingFinalCta({ onLaunchDashboard, onOpenUpload }: Props) {
         <p
           style={{
             fontSize: '1rem',
-            color: 'var(--text-secondary)',
+            color: '#A8B4CC',
             maxWidth: 620,
             margin: '0 auto 32px',
             lineHeight: 1.6,

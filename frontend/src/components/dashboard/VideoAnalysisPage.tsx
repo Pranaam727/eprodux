@@ -163,9 +163,9 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
             onDragLeave={() => setIsDragOver(false)}
             onClick={() => !isWorking && fileInputRef.current?.click()}
             style={{
-              border: `2px dashed ${isDragOver ? 'var(--accent-green)' : 'rgba(255,255,255,0.15)'}`,
+              border: `2px dashed ${isDragOver ? 'var(--color-primary)' : 'rgba(168, 180, 204, 0.4)'}`,
               borderRadius: 'var(--radius-lg)',
-              background: isDragOver ? 'var(--accent-green-bg)' : 'rgba(17, 24, 39, 0.5)',
+              background: isDragOver ? 'rgba(163, 217, 0, 0.08)' : 'var(--color-card)',
               padding: '36px 20px',
               textAlign: 'center',
               cursor: isWorking ? 'not-allowed' : 'pointer',
@@ -184,14 +184,16 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
                 }
               }}
             />
-            <div style={{ fontSize: '2.4rem', marginBottom: 8 }}>📹</div>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 4 }}>
+            <div style={{ fontSize: '2.4rem', marginBottom: 8, color: 'var(--color-accent)', filter: 'drop-shadow(0 0 12px rgba(0, 184, 217, 0.4))' }}>
+              📹
+            </div>
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 4, color: 'var(--color-text)' }}>
               {file ? file.name : 'Drag & drop campus video file'}
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: 8 }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: 8 }}>
               {file ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : 'or click to browse local files'}
             </div>
-            <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)' }}>
               Supports MP4, MOV, AVI · Max 150 MB
             </div>
           </div>

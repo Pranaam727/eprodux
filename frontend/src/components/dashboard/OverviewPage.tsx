@@ -185,33 +185,34 @@ export function OverviewPage({
               <AreaChart data={chartMode === 'occupancy' ? occupancyChartData : energyChartData}>
                 <defs>
                   <linearGradient id="colorSem" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#F5B82E" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#F5B82E" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorClass" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#A3D900" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#A3D900" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorLab" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#00B8D9" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#00B8D9" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="time" stroke="#64748b" tick={{ fontSize: 11 }} />
-                <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
+                <XAxis dataKey="time" stroke="#A8B4CC" tick={{ fontSize: 11 }} />
+                <YAxis stroke="#A8B4CC" tick={{ fontSize: 11 }} />
                 <Tooltip
                   contentStyle={{
-                    background: '#1a2235',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: '#07132D',
+                    border: '1px solid #1A2945',
                     borderRadius: 8,
                     fontSize: 12,
+                    color: '#F7FAFF',
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Area type="monotone" dataKey="classroom" stroke="#10b981" fillOpacity={1} fill="url(#colorClass)" name="Classroom" />
-                <Area type="monotone" dataKey="lab" stroke="#38bdf8" fillOpacity={1} fill="url(#colorLab)" name="Laboratory" />
-                <Area type="monotone" dataKey="seminar_hall" stroke="#f59e0b" fillOpacity={1} fill="url(#colorSem)" name="Seminar Hall" />
+                <Legend wrapperStyle={{ fontSize: 11, color: '#A8B4CC' }} />
+                <Area type="monotone" dataKey="classroom" stroke="#A3D900" fillOpacity={1} fill="url(#colorClass)" name="Classroom" />
+                <Area type="monotone" dataKey="lab" stroke="#00B8D9" fillOpacity={1} fill="url(#colorLab)" name="Laboratory" />
+                <Area type="monotone" dataKey="seminar_hall" stroke="#F5B82E" fillOpacity={1} fill="url(#colorSem)" name="Seminar Hall" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -223,12 +224,12 @@ export function OverviewPage({
             </div>
             <ResponsiveContainer width="100%" height={120}>
               <BarChart data={utilizationData} layout="vertical">
-                <XAxis type="number" domain={[0, 100]} stroke="#64748b" tick={{ fontSize: 10 }} unit="%" />
-                <YAxis dataKey="room" type="category" stroke="#64748b" tick={{ fontSize: 10 }} width={80} />
+                <XAxis type="number" domain={[0, 100]} stroke="#A8B4CC" tick={{ fontSize: 10 }} unit="%" />
+                <YAxis dataKey="room" type="category" stroke="#A8B4CC" tick={{ fontSize: 10 }} width={80} />
                 <Tooltip
-                  contentStyle={{ background: '#1a2235', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
+                  contentStyle={{ background: '#07132D', border: '1px solid #1A2945', borderRadius: 8, fontSize: 11, color: '#F7FAFF' }}
                 />
-                <Bar dataKey="utilization" fill="#10b981" radius={[0, 4, 4, 0]} name="Capacity Utilized %" />
+                <Bar dataKey="utilization" fill="#A3D900" radius={[0, 4, 4, 0]} name="Capacity Utilized %" />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -9,48 +9,67 @@
    CSS Custom Properties (Design Tokens)
 ---------------------------------------------------------------- */
 :root {
-  /* Background layers */
-  --bg-base:      #0a0f1e;
-  --bg-surface:   #111827;
-  --bg-card:      #1a2235;
-  --bg-card-hover:#1e2a40;
-  --bg-overlay:   rgba(10, 15, 30, 0.85);
+  /* Centralized Reference Palette Tokens */
+  --color-bg:               #03091F; /* Deep midnight navy */
+  --color-bg-secondary:     #05051A; /* Dark blue-purple */
+  --color-card:             #07132D; /* Deep navy blue */
+  --color-card-elevated:    #0B1B38; /* Elevated card */
+  --color-primary:          #A3D900; /* Vivid lime green */
+  --color-accent:           #00B8D9; /* Bright cyan */
+  --color-brand-blue:       #0645A5; /* Deep ocean blue */
+  --color-banner-blue:      #073D91; /* Saturated royal blue */
+  --color-text:             #F7FAFF; /* Near-white */
+  --color-text-muted:       #A8B4CC; /* Muted blue-gray */
+  --color-border:           #1A2945; /* Subtle navy border */
+  --color-border-glow:      rgba(163, 217, 0, 0.35);
+  --color-success:          #A3D900; /* Vivid lime */
+  --color-info:             #00B8D9; /* Bright cyan */
+  --color-warning:          #F5B82E; /* Amber */
+  --color-error:            #FF5C69; /* Soft coral red */
 
-  /* Primary brand accent – sustainability green */
-  --accent-green:       #22c55e;
-  --accent-green-dim:   #16a34a;
-  --accent-green-glow:  rgba(34, 197, 94, 0.15);
-  --accent-green-bg:    rgba(34, 197, 94, 0.08);
+  /* Mapped design system layers */
+  --bg-base:          var(--color-bg);
+  --bg-surface:       var(--color-bg-secondary);
+  --bg-card:          var(--color-card);
+  --bg-card-hover:    var(--color-card-elevated);
+  --bg-overlay:       rgba(3, 9, 31, 0.92);
 
-  /* Secondary accent – electric blue for data */
-  --accent-blue:        #38bdf8;
-  --accent-blue-dim:    #0284c7;
-  --accent-blue-bg:     rgba(56, 189, 248, 0.08);
+  /* Primary accent – vivid lime green */
+  --accent-green:       var(--color-primary);
+  --accent-green-dim:   #8ec400;
+  --accent-green-glow:  rgba(163, 217, 0, 0.25);
+  --accent-green-bg:    rgba(163, 217, 0, 0.12);
+
+  /* Secondary accent – bright cyan */
+  --accent-blue:        var(--color-accent);
+  --accent-blue-dim:    #009bb8;
+  --accent-blue-bg:     rgba(0, 184, 217, 0.12);
 
   /* Alert colors */
-  --alert-critical: #ef4444;
-  --alert-critical-bg: rgba(239, 68, 68, 0.1);
-  --alert-warning:  #f59e0b;
-  --alert-warning-bg: rgba(245, 158, 11, 0.1);
-  --alert-info:     #38bdf8;
-  --alert-info-bg:  rgba(56, 189, 248, 0.1);
+  --alert-critical:     var(--color-error);
+  --alert-critical-bg:  rgba(255, 92, 105, 0.14);
+  --alert-warning:      var(--color-warning);
+  --alert-warning-bg:   rgba(245, 184, 46, 0.14);
+  --alert-info:         var(--color-info);
+  --alert-info-bg:      rgba(0, 184, 217, 0.14);
 
   /* Status colors */
-  --status-on:       #22c55e;
-  --status-off:      #64748b;
-  --status-unknown:  #f59e0b;
-  --status-offline:  #ef4444;
+  --status-on:          var(--color-primary);
+  --status-off:         #475569;
+  --status-unknown:     var(--color-warning);
+  --status-offline:     var(--color-error);
 
   /* Text */
-  --text-primary:   #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted:     #475569;
-  --text-accent:    #22c55e;
+  --text-primary:       var(--color-text);
+  --text-secondary:     var(--color-text-muted);
+  --text-muted:         #6b7c9e;
+  --text-accent:        var(--color-primary);
 
   /* Borders */
-  --border-subtle:  rgba(255,255,255,0.06);
-  --border-card:    rgba(255,255,255,0.09);
-  --border-accent:  rgba(34,197,94,0.3);
+  --border-subtle:      var(--color-border);
+  --border-card:        #142544;
+  --border-accent:      rgba(163, 217, 0, 0.4);
+  --border-cyan:        rgba(0, 184, 217, 0.4);
 
   /* Spacing */
   --space-1:  4px;
@@ -64,15 +83,16 @@
 
   /* Border radii */
   --radius-sm:  6px;
-  --radius-md:  10px;
-  --radius-lg:  16px;
-  --radius-xl:  20px;
+  --radius-md:  8px;
+  --radius-lg:  14px;
+  --radius-xl:  18px;
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-card:  0 4px 24px rgba(0,0,0,0.4);
-  --shadow-glow:  0 0 20px rgba(34,197,94,0.2);
-  --shadow-popup: 0 8px 40px rgba(0,0,0,0.6);
+  --shadow-card:  0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow:  0 0 24px rgba(163, 217, 0, 0.25);
+  --shadow-cyan:  0 0 24px rgba(0, 184, 217, 0.25);
+  --shadow-popup: 0 16px 48px rgba(0, 0, 0, 0.7);
 
   /* Typography */
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -88,7 +108,12 @@ html { font-size: 16px; scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-base);
+  background-color: var(--color-bg);
+  background-image: 
+    radial-gradient(rgba(0, 184, 217, 0.08) 1px, transparent 1px),
+    radial-gradient(rgba(6, 69, 165, 0.12) 1px, transparent 1px);
+  background-size: 32px 32px, 64px 64px;
+  background-position: 0 0, 16px 16px;
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
@@ -169,20 +194,20 @@ body {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  padding: 2px var(--space-2);
+  padding: 3px 10px;
   border-radius: var(--radius-full);
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
 }
-.badge--green   { background: var(--accent-green-bg);  color: var(--accent-green); border: 1px solid rgba(34,197,94,0.3); }
-.badge--blue    { background: var(--accent-blue-bg);   color: var(--accent-blue);  border: 1px solid rgba(56,189,248,0.3); }
-.badge--red     { background: var(--alert-critical-bg); color: var(--alert-critical); border: 1px solid rgba(239,68,68,0.3); }
-.badge--yellow  { background: var(--alert-warning-bg); color: var(--alert-warning); border: 1px solid rgba(245,158,11,0.3); }
-.badge--gray    { background: rgba(100,116,139,0.15); color: var(--text-secondary); border: 1px solid rgba(100,116,139,0.3); }
-.badge--demo    { background: rgba(168,85,247,0.1); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+.badge--green   { background: rgba(163, 217, 0, 0.12);  color: var(--color-primary); border: 1px solid rgba(163, 217, 0, 0.35); }
+.badge--blue    { background: rgba(0, 184, 217, 0.12);   color: var(--color-accent);  border: 1px solid rgba(0, 184, 217, 0.35); }
+.badge--red     { background: rgba(255, 92, 105, 0.12); color: var(--color-error);   border: 1px solid rgba(255, 92, 105, 0.35); }
+.badge--yellow  { background: rgba(245, 184, 46, 0.12); color: var(--color-warning); border: 1px solid rgba(245, 184, 46, 0.35); }
+.badge--gray    { background: rgba(168, 180, 204, 0.10); color: var(--color-text-muted); border: 1px solid rgba(168, 180, 204, 0.25); }
+.badge--demo    { background: rgba(168, 85, 247, 0.12); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); }
 
 /* ---------------------------------------------------------------
    Button component
@@ -191,43 +216,49 @@ body {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
+  padding: 8px 16px;
   border-radius: var(--radius-md);
-  font-size: 0.80rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   border: 1px solid transparent;
   text-decoration: none;
   letter-spacing: 0.02em;
 }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn--primary {
-  background: var(--accent-green);
-  color: #0a0f1e;
+  background: var(--color-primary);
+  color: #03091F;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 16px rgba(163, 217, 0, 0.30);
 }
 .btn--primary:hover:not(:disabled) {
-  background: #16a34a;
-  box-shadow: 0 0 12px rgba(34,197,94,0.4);
+  background: #b5ee00;
+  border-color: #b5ee00;
+  box-shadow: 0 0 24px rgba(163, 217, 0, 0.55);
 }
 .btn--secondary {
-  background: transparent;
-  border-color: var(--border-card);
-  color: var(--text-secondary);
+  background: rgba(11, 27, 56, 0.6);
+  border-color: var(--color-border);
+  color: var(--color-text);
+  backdrop-filter: blur(8px);
 }
 .btn--secondary:hover:not(:disabled) {
-  border-color: var(--border-accent);
-  color: var(--text-primary);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: rgba(0, 184, 217, 0.08);
+  box-shadow: 0 0 16px rgba(0, 184, 217, 0.25);
 }
 .btn--danger {
   background: transparent;
-  border-color: rgba(239,68,68,0.4);
-  color: var(--alert-critical);
+  border-color: rgba(255, 92, 105, 0.4);
+  color: var(--color-error);
 }
 .btn--danger:hover:not(:disabled) {
-  background: var(--alert-critical-bg);
+  background: rgba(255, 92, 105, 0.12);
 }
-.btn--sm { padding: 3px var(--space-3); font-size: 0.72rem; }
+.btn--sm { padding: 5px 12px; font-size: 0.74rem; }
 
 /* ---------------------------------------------------------------
    Status dot
