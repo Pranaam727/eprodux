@@ -1,0 +1,123 @@
+SYNTHETIC TEST DOCUMENT — NOT AN OFFICIAL REGULATION
+======================================================
+Title:    Sample University Energy Efficiency Reference
+Author:   Eprodux Test Fixtures Team
+Version:  0.1 (2024)
+Purpose:  Synthetic document for testing RAG retrieval pipeline only.
+          Do NOT cite this as an authoritative source.
+          Replace with verified ECBC/ASHRAE/BEE guidance after confirming
+          document availability and licensing with the project team.
+======================================================
+
+SECTION 1 — LIGHTING MANAGEMENT IN EDUCATIONAL BUILDINGS
+
+1.1 Occupancy-Based Lighting Control
+Switching off artificial lighting in unoccupied rooms is one of the most
+cost-effective energy conservation measures available to educational
+institutions. Spaces such as classrooms, seminar halls, and offices that
+operate on predictable schedules are ideal candidates for occupancy-sensor
+control or timed switching. Studies of university buildings in India suggest
+that lighting in general-purpose rooms is left on for an average of 2–4 hours
+per day beyond actual occupancy, representing 15–25% of lighting energy
+consumption.
+
+Recommended practice: Install occupancy sensors with a 15-minute timeout in
+classrooms and offices. Manual override should always be available to occupants.
+Do not apply automatic shut-off to laboratory fume cupboard lighting or
+emergency egress luminaires.
+
+1.2 Lighting Power Density Targets
+The Bureau of Energy Efficiency (BEE) Star Labelling program sets reference
+Lighting Power Density (LPD) values for educational buildings:
+  Classroom:    10 W/m²
+  Office:        9 W/m²
+  Laboratory:   15 W/m²
+  Corridor:      5 W/m²
+
+Actual LPD above these reference values indicates an opportunity to upgrade
+to more efficient luminaires (e.g., LED) without reducing illuminance levels.
+
+----------------------------------------------------------------------
+
+SECTION 2 — HVAC AND THERMAL COMFORT
+
+2.1 Temperature Setpoints
+Maintaining HVAC setpoints within the comfort range of 24–26 °C (cooling)
+and 20–22 °C (heating) has been shown to reduce energy consumption by up to
+18% compared with under-controlled systems. Each degree of unnecessary cooling
+increases compressor energy use by approximately 3–5%.
+
+2.2 Unoccupied Setback
+When a room is unoccupied for more than 30 minutes, HVAC systems should enter
+setback mode (e.g., 28 °C cooling setpoint) rather than maintaining full
+comfort conditions. This single measure can account for 10–20% of annual HVAC
+energy savings in Indian university buildings where HVAC run-hours often
+extend 2–4 hours beyond occupancy.
+
+2.3 Ventilation and CO2 Monitoring
+CO2 concentration above 1000 ppm in an occupied space indicates inadequate
+ventilation. Demand-controlled ventilation (DCV) adjusts outdoor air flow
+based on measured CO2, avoiding over-ventilation of partially occupied rooms.
+Maintaining CO2 below 800 ppm during full occupancy and allowing a rise to
+1000–1200 ppm threshold before increasing ventilation can reduce fan energy
+by 20–30% in variable-occupancy spaces.
+
+----------------------------------------------------------------------
+
+SECTION 3 — ENERGY METERING AND MONITORING
+
+3.1 Sub-Metering
+Installing electrical sub-meters at the room or zone level enables waste
+identification that aggregate building meters cannot provide. Key metering
+points for educational buildings:
+  - Each HVAC unit (chiller, AHU, split)
+  - Lighting circuits per floor or zone
+  - Laboratory plug loads
+  - Server rooms and UPS systems
+
+3.2 Anomaly Detection
+Baseline energy profiles for each room type allow automated detection of
+anomalous consumption. Deviations greater than 20% above the 7-day rolling
+average during the same occupancy period should trigger an investigation.
+
+----------------------------------------------------------------------
+
+SECTION 4 — LABORATORY AND CRITICAL EQUIPMENT
+
+4.1 Safety Considerations
+Laboratory equipment including fume hoods, biological safety cabinets,
+environmental chambers, and server racks must NOT be de-energised as part of
+general energy-saving measures. These systems may be required for safety,
+specimen preservation, or continuous experiments. Any power management in
+laboratories must be coordinated with the laboratory manager.
+
+4.2 Plug Load Management
+Non-critical plug loads (monitors, phone chargers, coffee machines) in
+laboratories and offices represent 15–30% of plug-load energy. Smart power
+strips with occupancy-linked switching can reduce this without affecting
+critical equipment.
+
+----------------------------------------------------------------------
+
+SECTION 5 — DATA QUALITY AND REPORTING
+
+5.1 Measurement vs. Estimation
+Energy efficiency reporting should clearly distinguish between:
+  (a) Measured savings — derived from sub-meter before/after comparisons.
+  (b) Estimated savings — calculated from engineering assumptions and
+      published typical values.
+  (c) Simulated savings — generated by a model without measurement.
+
+Estimated and simulated savings should always state their assumptions,
+uncertainty range, and the basis for the calculation.
+
+5.2 Missing Data
+When occupancy or energy data is unavailable, do not extrapolate savings
+claims. Instead, report the data gap and recommend installing the necessary
+instrumentation.
+
+======================================================
+END OF SYNTHETIC TEST DOCUMENT
+This document was created for the Eprodux project test suite only.
+It does not constitute regulatory guidance or professional advice.
+======================================================
