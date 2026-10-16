@@ -267,26 +267,61 @@ export function AnalysisResultsModal({ result, isOpen, onClose, onInspectRoom }:
           >
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.74rem' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left', position: 'sticky', top: 0, background: 'var(--color-card-elevated)', zIndex: 10 }}>
                   <th style={{ padding: '6px 12px' }}>TIMECODE</th>
                   <th style={{ padding: '6px 12px' }}>ZONE</th>
                   <th style={{ padding: '6px 12px' }}>DETECTED OCCUPANCY</th>
-                  <th style={{ padding: '6px 12px' }}>CONFIDENCE</th>
+                  <th style={{ padding: '6px 12px' }}>TRACKING ACTIVITY</th>
+                  <th style={{ padding: '6px 12px', textAlign: 'right' }}>CONFIDENCE</th>
                 </tr>
               </thead>
               <tbody>
-                {result.timeline.map((evt, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '6px 12px', fontFamily: 'var(--font-mono)' }}>{evt.timecode}</td>
-                    <td style={{ padding: '6px 12px', textTransform: 'capitalize' }}>
-                      {evt.roomId.replace('_', ' ')}
-                    </td>
-                    <td style={{ padding: '6px 12px', fontWeight: 600 }}>{evt.occupancy} persons</td>
-                    <td style={{ padding: '6px 12px', color: 'var(--accent-green)' }}>
-                      {Math.round(evt.confidence * 100)}%
-                    </td>
-                  </tr>
-                ))}
+                {[...result.timeline]
+                  .sort((a, b) => a.timestampSeconds - b.timestampSeconds)
+                  .map((evt, idx) => {
+                    const icon =
+                      evt.roomId === 'classroom'
+                        ? '📚'
+                        : evt.roomId === 'seminar_hall'
+                        ? '🎭'
+                        : evt.roomId === 'lab'
+                        ? '🔬'
+                        : '💼';
+                    return (
+                      <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '6px 12px', fontFamily: 'var(--font-mono)' }}>
+                          <span style={{ fontWeight: 700 }}>{evt.timecode}</span>
+                          {evt.frameNumber && (
+                            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginLeft: 6 }}>
+                              (F#{evt.frameNumber})
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: '6px 12px', textTransform: 'capitalize' }}>
+                          <span style={{ marginRight: 6 }}>{icon}</span>
+                          {evt.roomId.replace('_', ' ')}
+                        </td>
+                        <td style={{ padding: '6px 12px', fontWeight: 600 }}>
+                          <span style={{ color: evt.occupancy === 0 ? 'var(--color-warning)' : 'var(--color-text)' }}>
+                            {evt.occupancy} {evt.occupancy === 1 ? 'person' : 'persons'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '6px 12px', color: 'var(--text-secondary)' }}>
+                          {evt.activity || 'Tracked Object'}
+                        </td>
+                        <td
+                          style={{
+                            padding: '6px 12px',
+                            textAlign: 'right',
+                            fontWeight: 700,
+                            color: evt.confidence >= 0.95 ? 'var(--color-primary)' : 'var(--color-accent)',
+                          }}
+                        >
+                          {(evt.confidence * 100).toFixed(1)}%
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>

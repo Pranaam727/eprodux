@@ -193,6 +193,9 @@ export interface VideoAnalysisEvent {
   roomId: RoomId;
   occupancy: number;
   confidence: number;
+  delta?: number;
+  activity?: string;
+  frameNumber?: number;
 }
 
 export interface VideoRoomObservation {

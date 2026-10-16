@@ -28,6 +28,8 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
   const [statusMessage, setStatusMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [targetRoomId, setTargetRoomId] = useState<RoomId | 'all'>('all');
+  const [filterRoomId, setFilterRoomId] = useState<RoomId | 'all'>('all');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -55,6 +57,13 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
       setErrorMessage(validation.error || 'Invalid video file.');
       return;
     }
+
+    // Auto-detect room from filename if matching
+    const nameLower = selectedFile.name.toLowerCase();
+    if (nameLower.includes('classroom')) setTargetRoomId('classroom');
+    else if (nameLower.includes('seminar')) setTargetRoomId('seminar_hall');
+    else if (nameLower.includes('lab')) setTargetRoomId('lab');
+    else if (nameLower.includes('office')) setTargetRoomId('office');
 
     cleanupPreview();
     const url = createVideoPreviewUrl(selectedFile);
@@ -87,6 +96,7 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
           }
         },
         controller.signal,
+        targetRoomId,
       );
 
       setStatus('completed');
@@ -196,6 +206,34 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
             <div style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)' }}>
               Supports MP4, MOV, AVI · Max 150 MB
             </div>
+          </div>
+
+          {/* Target Monitored Zone Selection */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', display: 'block', marginBottom: 6, fontWeight: 600 }}>
+              Target Monitored Zone:
+            </label>
+            <select
+              value={targetRoomId}
+              onChange={(e) => setTargetRoomId(e.target.value as any)}
+              disabled={isWorking}
+              style={{
+                width: '100%',
+                padding: '9px 12px',
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--color-bg-secondary)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-text)',
+                fontSize: '0.80rem',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="all">Floor 3 Multi-Zone Stream (All 4 Monitored Zones)</option>
+              <option value="classroom">📚 Classroom (Room 302)</option>
+              <option value="seminar_hall">🎭 Seminar Hall (Room 301)</option>
+              <option value="lab">🔬 Laboratory (Room 303)</option>
+              <option value="office">💼 Faculty Office (Room 304)</option>
+            </select>
           </div>
 
           {/* Progress Indicator */}
@@ -393,41 +431,139 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
           </div>
 
           {/* Timeline Events Log */}
-          <div className="section-title" style={{ marginBottom: 8 }}>
-            CHRONOLOGICAL CV DETECTION EVENTS
-          </div>
-          <div
-            style={{
-              maxHeight: 200,
-              overflowY: 'auto',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-surface)',
-            }}
-          >
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.74rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
-                  <th style={{ padding: '6px 12px' }}>TIMECODE</th>
-                  <th style={{ padding: '6px 12px' }}>ZONE ID</th>
-                  <th style={{ padding: '6px 12px' }}>DETECTED OCCUPANCY</th>
-                  <th style={{ padding: '6px 12px' }}>CONFIDENCE</th>
-                </tr>
-              </thead>
-              <tbody>
-                {latestResult.timeline.map((evt, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '6px 12px', fontFamily: 'var(--font-mono)' }}>{evt.timecode}</td>
-                    <td style={{ padding: '6px 12px', textTransform: 'capitalize' }}>{evt.roomId.replace('_', ' ')}</td>
-                    <td style={{ padding: '6px 12px', fontWeight: 600 }}>{evt.occupancy} occupants</td>
-                    <td style={{ padding: '6px 12px', color: 'var(--accent-green)' }}>
-                      {Math.round(evt.confidence * 100)}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {(() => {
+            const filteredTimeline = (latestResult.timeline || [])
+              .filter((evt) => filterRoomId === 'all' || evt.roomId === filterRoomId)
+              .sort((a, b) => a.timestampSeconds - b.timestampSeconds);
+
+            const roomCounts: Record<string, number> = {
+              all: latestResult.timeline.length,
+              classroom: latestResult.timeline.filter((e) => e.roomId === 'classroom').length,
+              seminar_hall: latestResult.timeline.filter((e) => e.roomId === 'seminar_hall').length,
+              lab: latestResult.timeline.filter((e) => e.roomId === 'lab').length,
+              office: latestResult.timeline.filter((e) => e.roomId === 'office').length,
+            };
+
+            return (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
+                  <div>
+                    <div className="section-title" style={{ marginBottom: 2 }}>
+                      CHRONOLOGICAL CV DETECTION EVENTS ({filteredTimeline.length})
+                    </div>
+                    <div style={{ fontSize: '0.70rem', color: 'var(--text-muted)' }}>
+                      Strictly sequenced chronologically with frame-by-frame tracking & confidence scores
+                    </div>
+                  </div>
+
+                  {/* Filter tabs */}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {(['all', 'classroom', 'seminar_hall', 'lab', 'office'] as const).map((r) => {
+                      const count = roomCounts[r] || 0;
+                      const label = r === 'all' ? 'All Zones' : r === 'classroom' ? 'Classroom' : r === 'seminar_hall' ? 'Seminar' : r === 'lab' ? 'Lab' : 'Office';
+                      const isActive = filterRoomId === r;
+                      return (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => setFilterRoomId(r)}
+                          style={{
+                            padding: '4px 10px',
+                            fontSize: '0.70rem',
+                            fontWeight: isActive ? 700 : 500,
+                            borderRadius: 'var(--radius-sm)',
+                            border: `1px solid ${isActive ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                            background: isActive ? 'var(--color-card-elevated)' : 'transparent',
+                            color: isActive ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          {label} ({count})
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    maxHeight: 260,
+                    overflowY: 'auto',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-surface)',
+                  }}
+                >
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.74rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left', position: 'sticky', top: 0, background: 'var(--color-card-elevated)', zIndex: 10 }}>
+                        <th style={{ padding: '8px 12px' }}>TIMECODE</th>
+                        <th style={{ padding: '8px 12px' }}>ZONE ID</th>
+                        <th style={{ padding: '8px 12px' }}>DETECTED OCCUPANCY</th>
+                        <th style={{ padding: '8px 12px' }}>TRACKING / ACTIVITY</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right' }}>CONFIDENCE</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredTimeline.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} style={{ padding: '24px 12px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                            No detection events found for this filter criteria.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredTimeline.map((evt, idx) => {
+                          const icon =
+                            evt.roomId === 'classroom'
+                              ? '📚'
+                              : evt.roomId === 'seminar_hall'
+                              ? '🎭'
+                              : evt.roomId === 'lab'
+                              ? '🔬'
+                              : '💼';
+                          return (
+                            <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                              <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)' }}>
+                                <span style={{ fontWeight: 700, color: 'var(--color-text)' }}>{evt.timecode}</span>
+                                {evt.frameNumber && (
+                                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginLeft: 6 }}>
+                                    (F#{evt.frameNumber})
+                                  </span>
+                                )}
+                              </td>
+                              <td style={{ padding: '8px 12px', textTransform: 'capitalize' }}>
+                                <span style={{ marginRight: 6 }}>{icon}</span>
+                                {evt.roomId.replace('_', ' ')}
+                              </td>
+                              <td style={{ padding: '8px 12px', fontWeight: 600 }}>
+                                <span style={{ color: evt.occupancy === 0 ? 'var(--color-warning)' : 'var(--color-text)' }}>
+                                  {evt.occupancy} {evt.occupancy === 1 ? 'occupant' : 'occupants'}
+                                </span>
+                              </td>
+                              <td style={{ padding: '8px 12px', color: 'var(--color-text-muted)' }}>
+                                {evt.activity || 'Tracked Object'}
+                              </td>
+                              <td
+                                style={{
+                                  padding: '8px 12px',
+                                  textAlign: 'right',
+                                  fontWeight: 700,
+                                  color: evt.confidence >= 0.95 ? 'var(--color-primary)' : 'var(--color-accent)',
+                                }}
+                              >
+                                {(evt.confidence * 100).toFixed(1)}%
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            );
+          })()}
         </div>
       )}
     </div>

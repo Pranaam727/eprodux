@@ -5,6 +5,7 @@
 // ============================================================
 
 import type {
+  RoomId,
   VideoAnalysisResult,
   VideoRoomObservation,
   VideoAnalysisEvent,
@@ -71,6 +72,7 @@ export async function uploadAndAnalyzeVideo(
   file: File,
   onProgress?: VideoUploadProgressCallback,
   signal?: AbortSignal,
+  targetRoomId: RoomId | 'all' = 'all',
 ): Promise<VideoAnalysisResult> {
   const validation = validateVideoFile(file);
   if (!validation.valid) {
@@ -89,7 +91,7 @@ export async function uploadAndAnalyzeVideo(
   }
 
   // Execute demo pipeline with realistic async progress steps
-  return await simulateVideoAnalysis(file, onProgress, signal);
+  return await simulateVideoAnalysis(file, onProgress, signal, targetRoomId);
 }
 
 /**
@@ -164,13 +166,14 @@ async function submitVideoToBackend(
 
 /**
  * Deterministic, transparent mock pipeline simulating real CV inference:
- * Extracts metadata, simulates YOLO frame detection across the 4 canonical rooms,
- * and yields grounded occupancy timelines.
+ * Extracts metadata, simulates YOLO frame detection across canonical rooms,
+ * and yields strictly sorted, chronological occupancy events with tracking deltas.
  */
 async function simulateVideoAnalysis(
   file: File,
   onProgress?: VideoUploadProgressCallback,
   signal?: AbortSignal,
+  targetRoomId: RoomId | 'all' = 'all',
 ): Promise<VideoAnalysisResult> {
   const delay = (ms: number) => new Promise((resolve, reject) => {
     if (signal?.aborted) return reject(new Error('Analysis cancelled by user.'));
@@ -199,7 +202,6 @@ async function simulateVideoAnalysis(
   onProgress?.(100, 'Finalizing zone observations & energy correlation...');
   await delay(400);
 
-  // Derive pseudo-realistic observations based on canonical rooms
   const now = new Date().toISOString();
   const durationSec = 120; // 2 minutes simulated footage
 
@@ -213,7 +215,7 @@ async function simulateVideoAnalysis(
       lightingState: 'ON',
       lightingProvenance: 'simulated',
       anomalies: ['Unoccupied room with lighting left active for > 2 hours'],
-      confidence: 0.94,
+      confidence: 0.985,
       freshnessIso: now,
     },
     classroom: {
@@ -225,7 +227,7 @@ async function simulateVideoAnalysis(
       lightingState: 'ON',
       lightingProvenance: 'simulated',
       anomalies: [],
-      confidence: 0.96,
+      confidence: 0.965,
       freshnessIso: now,
     },
     lab: {
@@ -237,7 +239,7 @@ async function simulateVideoAnalysis(
       lightingState: 'ON',
       lightingProvenance: 'manual',
       anomalies: [],
-      confidence: 0.91,
+      confidence: 0.925,
       freshnessIso: now,
     },
     office: {
@@ -249,26 +251,73 @@ async function simulateVideoAnalysis(
       lightingState: 'OFF',
       lightingProvenance: 'simulated',
       anomalies: [],
-      confidence: 0.89,
+      confidence: 0.895,
       freshnessIso: now,
     },
   };
 
-  const timeline: VideoAnalysisEvent[] = [
-    { timestampSeconds: 10, timecode: '00:10', roomId: 'classroom', occupancy: 12, confidence: 0.95 },
-    { timestampSeconds: 30, timecode: '00:30', roomId: 'classroom', occupancy: 21, confidence: 0.97 },
-    { timestampSeconds: 60, timecode: '01:00', roomId: 'classroom', occupancy: 24, confidence: 0.96 },
-    { timestampSeconds: 90, timecode: '01:30', roomId: 'classroom', occupancy: 19, confidence: 0.96 },
-    { timestampSeconds: 15, timecode: '00:15', roomId: 'lab', occupancy: 5, confidence: 0.91 },
-    { timestampSeconds: 45, timecode: '00:45', roomId: 'lab', occupancy: 12, confidence: 0.93 },
-    { timestampSeconds: 75, timecode: '01:15', roomId: 'lab', occupancy: 8, confidence: 0.90 },
-    { timestampSeconds: 105, timecode: '01:45', roomId: 'lab', occupancy: 6, confidence: 0.92 },
-    { timestampSeconds: 20, timecode: '00:20', roomId: 'seminar_hall', occupancy: 0, confidence: 0.98 },
-    { timestampSeconds: 80, timecode: '01:20', roomId: 'seminar_hall', occupancy: 0, confidence: 0.98 },
-  ];
+  let rawTimeline: VideoAnalysisEvent[] = [];
+
+  if (targetRoomId === 'classroom') {
+    rawTimeline = [
+      { timestampSeconds: 10, timecode: '00:10', roomId: 'classroom', occupancy: 8, confidence: 0.952, delta: 8, activity: 'Doors Open · Arrivals', frameNumber: 300 },
+      { timestampSeconds: 20, timecode: '00:20', roomId: 'classroom', occupancy: 12, confidence: 0.958, delta: 4, activity: 'Entering (+4)', frameNumber: 600 },
+      { timestampSeconds: 30, timecode: '00:30', roomId: 'classroom', occupancy: 16, confidence: 0.968, delta: 4, activity: 'Entering (+4)', frameNumber: 900 },
+      { timestampSeconds: 45, timecode: '00:45', roomId: 'classroom', occupancy: 19, confidence: 0.964, delta: 3, activity: 'Entering (+3)', frameNumber: 1350 },
+      { timestampSeconds: 60, timecode: '01:00', roomId: 'classroom', occupancy: 22, confidence: 0.971, delta: 3, activity: 'Class Assembling', frameNumber: 1800 },
+      { timestampSeconds: 75, timecode: '01:15', roomId: 'classroom', occupancy: 24, confidence: 0.975, delta: 2, activity: 'Lecture In-Session (Peak 24)', frameNumber: 2250 },
+      { timestampSeconds: 90, timecode: '01:30', roomId: 'classroom', occupancy: 24, confidence: 0.969, delta: 0, activity: 'Steady Attendance', frameNumber: 2700 },
+      { timestampSeconds: 105, timecode: '01:45', roomId: 'classroom', occupancy: 21, confidence: 0.965, delta: -3, activity: 'Early Dismissal (-3)', frameNumber: 3150 },
+      { timestampSeconds: 115, timecode: '01:55', roomId: 'classroom', occupancy: 19, confidence: 0.961, delta: -2, activity: 'Break Transition (-2)', frameNumber: 3450 },
+    ];
+  } else if (targetRoomId === 'seminar_hall') {
+    rawTimeline = [
+      { timestampSeconds: 10, timecode: '00:10', roomId: 'seminar_hall', occupancy: 0, confidence: 0.985, delta: 0, activity: 'Vacant · Lights ON', frameNumber: 300 },
+      { timestampSeconds: 30, timecode: '00:30', roomId: 'seminar_hall', occupancy: 0, confidence: 0.988, delta: 0, activity: 'Zero Motion Detected', frameNumber: 900 },
+      { timestampSeconds: 60, timecode: '01:00', roomId: 'seminar_hall', occupancy: 0, confidence: 0.991, delta: 0, activity: 'Idle Energy Waste (>1h)', frameNumber: 1800 },
+      { timestampSeconds: 90, timecode: '01:30', roomId: 'seminar_hall', occupancy: 0, confidence: 0.989, delta: 0, activity: 'Idle Energy Waste', frameNumber: 2700 },
+      { timestampSeconds: 115, timecode: '01:55', roomId: 'seminar_hall', occupancy: 0, confidence: 0.992, delta: 0, activity: 'Unoccupied · Recommended Turn-Off', frameNumber: 3450 },
+    ];
+  } else if (targetRoomId === 'lab') {
+    rawTimeline = [
+      { timestampSeconds: 15, timecode: '00:15', roomId: 'lab', occupancy: 5, confidence: 0.912, delta: 5, activity: 'Lab Prep Team', frameNumber: 450 },
+      { timestampSeconds: 35, timecode: '00:35', roomId: 'lab', occupancy: 7, confidence: 0.924, delta: 2, activity: 'Researchers Entering', frameNumber: 1050 },
+      { timestampSeconds: 55, timecode: '00:55', roomId: 'lab', occupancy: 10, confidence: 0.931, delta: 3, activity: 'Equipment Activated', frameNumber: 1650 },
+      { timestampSeconds: 75, timecode: '01:15', roomId: 'lab', occupancy: 12, confidence: 0.936, delta: 2, activity: 'Peak Experiment Session', frameNumber: 2250 },
+      { timestampSeconds: 95, timecode: '01:35', roomId: 'lab', occupancy: 9, confidence: 0.928, delta: -3, activity: 'Team Shift Rotation', frameNumber: 2850 },
+      { timestampSeconds: 115, timecode: '01:55', roomId: 'lab', occupancy: 6, confidence: 0.921, delta: -3, activity: 'Equipment Standby', frameNumber: 3450 },
+    ];
+  } else if (targetRoomId === 'office') {
+    rawTimeline = [
+      { timestampSeconds: 10, timecode: '00:10', roomId: 'office', occupancy: 1, confidence: 0.892, delta: 1, activity: 'Faculty Arrival', frameNumber: 300 },
+      { timestampSeconds: 40, timecode: '00:40', roomId: 'office', occupancy: 2, confidence: 0.894, delta: 1, activity: 'Student Consultation', frameNumber: 1200 },
+      { timestampSeconds: 75, timecode: '01:15', roomId: 'office', occupancy: 4, confidence: 0.903, delta: 2, activity: 'Department Meeting', frameNumber: 2250 },
+      { timestampSeconds: 110, timecode: '01:50', roomId: 'office', occupancy: 2, confidence: 0.901, delta: -2, activity: 'Meeting Concluded', frameNumber: 3300 },
+    ];
+  } else {
+    // Multi-zone floor surveillance footage (strictly chronological)
+    rawTimeline = [
+      { timestampSeconds: 10, timecode: '00:10', roomId: 'classroom', occupancy: 12, confidence: 0.954, delta: 2, activity: 'Entering (+2)', frameNumber: 300 },
+      { timestampSeconds: 15, timecode: '00:15', roomId: 'lab', occupancy: 5, confidence: 0.912, delta: 1, activity: 'Active Research', frameNumber: 450 },
+      { timestampSeconds: 20, timecode: '00:20', roomId: 'seminar_hall', occupancy: 0, confidence: 0.985, delta: 0, activity: 'Vacant (Lights ON)', frameNumber: 600 },
+      { timestampSeconds: 30, timecode: '00:30', roomId: 'classroom', occupancy: 16, confidence: 0.968, delta: 4, activity: 'Entering (+4)', frameNumber: 900 },
+      { timestampSeconds: 40, timecode: '00:40', roomId: 'office', occupancy: 2, confidence: 0.894, delta: 0, activity: 'Seated Desk Work', frameNumber: 1200 },
+      { timestampSeconds: 45, timecode: '00:45', roomId: 'lab', occupancy: 9, confidence: 0.928, delta: 4, activity: 'Entering (+4)', frameNumber: 1350 },
+      { timestampSeconds: 60, timecode: '01:00', roomId: 'classroom', occupancy: 21, confidence: 0.972, delta: 5, activity: 'Entering (+5)', frameNumber: 1800 },
+      { timestampSeconds: 75, timecode: '01:15', roomId: 'lab', occupancy: 12, confidence: 0.936, delta: 3, activity: 'Peak Lab Session', frameNumber: 2250 },
+      { timestampSeconds: 80, timecode: '01:20', roomId: 'seminar_hall', occupancy: 0, confidence: 0.988, delta: 0, activity: 'Vacant (Lights ON)', frameNumber: 2400 },
+      { timestampSeconds: 90, timecode: '01:30', roomId: 'classroom', occupancy: 24, confidence: 0.965, delta: 3, activity: 'Lecture In-Session (Peak)', frameNumber: 2700 },
+      { timestampSeconds: 105, timecode: '01:45', roomId: 'lab', occupancy: 7, confidence: 0.921, delta: -5, activity: 'Exiting (-5)', frameNumber: 3150 },
+      { timestampSeconds: 110, timecode: '01:50', roomId: 'office', occupancy: 2, confidence: 0.901, delta: 0, activity: 'Consultation', frameNumber: 3300 },
+      { timestampSeconds: 115, timecode: '01:55', roomId: 'classroom', occupancy: 19, confidence: 0.961, delta: -5, activity: 'Break Transition (-5)', frameNumber: 3450 },
+    ];
+  }
+
+  // Strictly enforce chronological sorting by timestampSeconds
+  const timeline = [...rawTimeline].sort((a, b) => a.timestampSeconds - b.timestampSeconds);
 
   return {
-    jobId: `cv-demo-${Date.now().toString(36)}`,
+    jobId: `cv-job-${Date.now().toString(36)}`,
     fileName: file.name,
     fileSizeBytes: file.size,
     durationSeconds: durationSec,
@@ -280,7 +329,11 @@ async function simulateVideoAnalysis(
     observations: observations as Record<any, VideoRoomObservation>,
     timeline,
     summary:
-      'Computer vision detection completed across 4 monitored zones. Seminar Hall is flagged for 100% idle lighting waste (0 occupants observed with lighting ON).',
+      targetRoomId === 'seminar_hall'
+        ? 'Computer vision confirmed 0 occupants in Seminar Hall for the entire footage duration with 24 fixtures left active (100% idle waste).'
+        : targetRoomId === 'classroom'
+        ? 'YOLOv8 + ByteTrack detected regular class attendance starting with 8 arrivals, peaking at 24 occupants at 01:15, and exiting to 19.'
+        : 'Computer vision detection completed across 4 monitored zones. Seminar Hall is flagged for 100% idle lighting waste (0 occupants observed with lighting ON).',
     warnings: [
       'DEMO DATA: Live CV backend not detected. Results simulated deterministically based on standard university benchmark scenario.',
       'Lighting state is manually supplied / simulated and was not derived from computer vision inference.',
