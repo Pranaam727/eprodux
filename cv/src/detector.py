@@ -134,6 +134,12 @@ class YOLODetector:
                     xyxy = boxes.xyxy[i].cpu().numpy()
                     conf_val = float(boxes.conf[i].cpu().numpy())
 
+                    # Explicit verification: Ensure class is person class
+                    if boxes.cls is not None:
+                        c_id = int(boxes.cls[i].cpu().numpy())
+                        if c_id != self._person_class_id:
+                            continue
+
                     # Track ID: may be None if tracker hasn't assigned one yet
                     tid = -1
                     if boxes.id is not None:

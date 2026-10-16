@@ -191,8 +191,11 @@ export interface VideoAnalysisEvent {
   timestampSeconds: number;
   timecode: string;
   roomId: RoomId;
-  occupancy: number;
-  confidence: number;
+  occupancy: number; // Retained for backwards compatibility (current active tracks)
+  currentOccupancy?: number; // Active tracks currently present in zone
+  detectionCount?: number; // Raw bounding box detections in this frame
+  uniqueTrackedPeople?: number; // Cumulative unique tracking IDs observed in interval
+  confidence: number; // Sliding window temporal count-stability score
   delta?: number;
   activity?: string;
   frameNumber?: number;
@@ -204,6 +207,8 @@ export interface VideoRoomObservation {
   peakOccupancy: number;
   averageOccupancy: number;
   currentOccupancy: number | null;
+  detectionCount?: number | null;
+  uniqueTrackedPeople?: number;
   lightingState: LightState;
   lightingProvenance: 'manual' | 'simulated' | 'unknown';
   anomalies: string[];
@@ -225,5 +230,6 @@ export interface VideoAnalysisResult {
   timeline: VideoAnalysisEvent[];
   summary: string;
   warnings: string[];
+  limitations?: string[];
 }
 

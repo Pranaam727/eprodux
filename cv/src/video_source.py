@@ -164,11 +164,13 @@ class VideoSource:
                     interpolation=cv2.INTER_LINEAR,
                 )
 
-            now = time.perf_counter()
+            fps = self._native_fps if (self._native_fps and self._native_fps > 0) else self._target_fps
+            video_time_sec = frame_index / fps
+
             yield FrameResult(
                 frame=frame,
                 frame_index=frame_index,
-                timestamp_sec=now,
+                timestamp_sec=video_time_sec,
             )
 
             # Lightweight throttle so we don't spin if processing is very fast

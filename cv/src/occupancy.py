@@ -20,6 +20,7 @@ from __future__ import annotations
 import logging
 import math
 from collections import deque, Counter
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
@@ -108,3 +109,98 @@ class OccupancyStabilizer:
     def reset(self) -> None:
         for s in self._stabilizers.values():
             s.reset()
+
+
+@dataclass
+class ZoneOccupancyMetric:
+    """Distinct occupancy measurements per zone."""
+    zone_id: str
+    current_occupancy: int        # Estimated distinct people currently in room (with occlusion grace period)
+    detection_count: int          # Raw person bounding box detections in this frame
+    unique_tracked_people: int    # Cumulative distinct tracking IDs seen in this room
+    confidence: float             # Count stability score in [0.0, 1.0] across sliding window
+    active_track_ids: list[int]   # Track IDs currently active in zone
+
+
+class ActiveTrackTracker:
+    """Manages active person tracks and distinct occupancy concepts per room zone.
+
+    Occupancy Concepts:
+    - detection_count: raw person bounding boxes in the current frame.
+    - current_occupancy: distinct people currently active in the room (with occlusion grace period).
+    - unique_tracked_people: cumulative distinct tracking IDs seen in this room across the session.
+
+    Occlusion & Track Expiry:
+    If a person is temporarily occluded (e.g. by furniture or another person), ByteTrack might
+    drop detection for 1-2 frames. The track remains active until `track_expiry_sec` has elapsed
+    without observing that track ID.
+    """
+
+    def __init__(
+        self,
+        zone_ids: list[str],
+        window_size: int = 5,
+        method: str = "mode",
+        track_expiry_sec: float = 2.0,
+    ) -> None:
+        self.zone_ids = list(zone_ids)
+        self.track_expiry_sec = track_expiry_sec
+        self._stabilizers = {zid: ZoneStabilizer(window_size=window_size, method=method) for zid in zone_ids}
+        self._active_tracks: dict[str, dict[int, float]] = {zid: {} for zid in zone_ids}
+        self._unique_tracks: dict[str, set[int]] = {zid: set() for zid in zone_ids}
+
+    def update_frame(
+        self,
+        detections_by_zone: dict[str, list[tuple[int, float]]],
+        timestamp_sec: float,
+    ) -> dict[str, ZoneOccupancyMetric]:
+        """Update active tracks and return distinct occupancy metrics per zone."""
+        metrics: dict[str, ZoneOccupancyMetric] = {}
+
+        for zone_id in self.zone_ids:
+            zone_dets = detections_by_zone.get(zone_id, [])
+            raw_detection_count = len(zone_dets)
+
+            active = self._active_tracks[zone_id]
+            unique = self._unique_tracks[zone_id]
+            untracked_count = 0
+
+            for tid, _ in zone_dets:
+                if tid != -1:
+                    active[tid] = timestamp_sec
+                    unique.add(tid)
+                else:
+                    untracked_count += 1
+
+            # Evict tracks that have exceeded track_expiry_sec without being observed
+            expired_ids = [
+                tid for tid, last_seen in active.items()
+                if (timestamp_sec - last_seen) > self.track_expiry_sec
+            ]
+            for tid in expired_ids:
+                del active[tid]
+
+            # Raw current occupancy: active tracks + untracked instantaneous detections
+            raw_current_occupancy = len(active) + untracked_count
+
+            # Apply temporal stabilization to smooth brief spikes
+            stabilizer = self._stabilizers[zone_id]
+            stabilized_occ, stability_score = stabilizer.update(raw_current_occupancy)
+
+            metrics[zone_id] = ZoneOccupancyMetric(
+                zone_id=zone_id,
+                current_occupancy=stabilized_occ,
+                detection_count=raw_detection_count,
+                unique_tracked_people=len(unique),
+                confidence=round(stability_score, 4),
+                active_track_ids=sorted(list(active.keys())),
+            )
+
+        return metrics
+
+    def reset(self) -> None:
+        for s in self._stabilizers.values():
+            s.reset()
+        for zid in self.zone_ids:
+            self._active_tracks[zid].clear()
+            self._unique_tracks[zid].clear()

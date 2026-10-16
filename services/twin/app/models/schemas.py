@@ -176,3 +176,48 @@ class HealthResponse(BaseModel):
     version: str
     run_mode: str
     storage: str
+
+
+class VideoTimelineEvent(BaseModel):
+    timestamp_seconds: float
+    timecode: str
+    room_id: RoomId
+    current_occupancy: int
+    detection_count: int
+    unique_tracked_people: int
+    confidence: float
+    activity: str
+    frame_number: Optional[int] = None
+    source: str = "recorded-video"
+
+
+class VideoRoomObservationSchema(BaseModel):
+    roomId: RoomId
+    roomName: str
+    currentOccupancy: Optional[int] = None
+    detectionCount: Optional[int] = None
+    peakOccupancy: int = 0
+    averageOccupancy: float = 0.0
+    uniqueTrackedPeople: int = 0
+    lightingState: str = "unknown"
+    lightingProvenance: str = "simulated"
+    anomalies: List[str] = Field(default_factory=list)
+    confidence: float = 1.0
+    freshnessIso: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class VideoAnalysisResultSchema(BaseModel):
+    jobId: str
+    fileName: str
+    fileSizeBytes: int
+    durationSeconds: float
+    fps: float
+    totalFrames: int
+    status: str = "completed"
+    isDemo: bool = False
+    processedAt: str
+    observations: Dict[str, VideoRoomObservationSchema]
+    timeline: List[Dict[str, Any]]
+    summary: str
+    warnings: List[str] = Field(default_factory=list)
+    limitations: List[str] = Field(default_factory=list)

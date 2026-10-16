@@ -270,9 +270,10 @@ export function AnalysisResultsModal({ result, isOpen, onClose, onInspectRoom }:
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left', position: 'sticky', top: 0, background: 'var(--color-card-elevated)', zIndex: 10 }}>
                   <th style={{ padding: '6px 12px' }}>TIMECODE</th>
                   <th style={{ padding: '6px 12px' }}>ZONE</th>
-                  <th style={{ padding: '6px 12px' }}>DETECTED OCCUPANCY</th>
+                  <th style={{ padding: '6px 12px' }}>CURRENT OCCUPANCY</th>
+                  <th style={{ padding: '6px 12px' }}>FRAME DETECTIONS</th>
                   <th style={{ padding: '6px 12px' }}>TRACKING ACTIVITY</th>
-                  <th style={{ padding: '6px 12px', textAlign: 'right' }}>CONFIDENCE</th>
+                  <th style={{ padding: '6px 12px', textAlign: 'right' }}>STABILITY SCORE</th>
                 </tr>
               </thead>
               <tbody>
@@ -287,6 +288,8 @@ export function AnalysisResultsModal({ result, isOpen, onClose, onInspectRoom }:
                         : evt.roomId === 'lab'
                         ? '🔬'
                         : '💼';
+                    const currOcc = evt.currentOccupancy ?? evt.occupancy;
+                    const frameDet = evt.detectionCount ?? currOcc;
                     return (
                       <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                         <td style={{ padding: '6px 12px', fontFamily: 'var(--font-mono)' }}>
@@ -302,12 +305,15 @@ export function AnalysisResultsModal({ result, isOpen, onClose, onInspectRoom }:
                           {evt.roomId.replace('_', ' ')}
                         </td>
                         <td style={{ padding: '6px 12px', fontWeight: 600 }}>
-                          <span style={{ color: evt.occupancy === 0 ? 'var(--color-warning)' : 'var(--color-text)' }}>
-                            {evt.occupancy} {evt.occupancy === 1 ? 'person' : 'persons'}
+                          <span style={{ color: currOcc === 0 ? 'var(--color-warning)' : 'var(--color-text)' }}>
+                            {currOcc} active
                           </span>
                         </td>
+                        <td style={{ padding: '6px 12px', color: 'var(--text-muted)' }}>
+                          {frameDet} bbox
+                        </td>
                         <td style={{ padding: '6px 12px', color: 'var(--text-secondary)' }}>
-                          {evt.activity || 'Tracked Object'}
+                          {evt.activity || 'Tracked Subject'}
                         </td>
                         <td
                           style={{

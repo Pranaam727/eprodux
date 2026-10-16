@@ -342,15 +342,19 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
         </div>
       </div>
 
-      {/* ── ANALYSIS FINDINGS BREAKDOWN (If Available) ── */}
-      {latestResult && (
+      {/* ── ANALYSIS FINDINGS BREAKDOWN (If Available) OR EMPTY STATE ── */}
+      {latestResult ? (
         <div className="card" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-accent)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span className="badge badge--green">✓ ANALYSIS COMPLETED</span>
-              {latestResult.isDemo && <span className="badge badge--demo">⚗️ DEMO DATA</span>}
+              {latestResult.isDemo ? (
+                <span className="badge badge--demo">⚗️ DEMO FIXTURE</span>
+              ) : (
+                <span className="badge badge--blue">🟢 LIVE BACKEND CV</span>
+              )}
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Job: {latestResult.jobId} · Processed {latestResult.totalFrames} frames @ {latestResult.fps} FPS
+                Session: {latestResult.jobId} · Processed {latestResult.totalFrames} frames @ {latestResult.fps} FPS
               </span>
             </div>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
@@ -381,53 +385,68 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
               gap: 12,
               marginBottom: 24,
             }}
           >
-            {Object.values(latestResult.observations).map((obs) => (
-              <div
-                key={obs.roomId}
-                className="card card--compact"
-                style={{
-                  background: 'var(--bg-surface)',
-                  border: obs.anomalies.length > 0 ? '1px solid rgba(239,68,68,0.4)' : '1px solid var(--border-card)',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{obs.roomName}</span>
-                  <span className="badge badge--green">{Math.round(obs.confidence * 100)}%</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, margin: '8px 0' }}>
-                  <div>
-                    <span className="text-xs text-muted">CURRENT</span>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{obs.currentOccupancy ?? 'UNKNOWN'}</div>
-                  </div>
-                  <div>
-                    <span className="text-xs text-muted">PEAK</span>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{obs.peakOccupancy}</div>
-                  </div>
-                  <div>
-                    <span className="text-xs text-muted">AVERAGE</span>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{obs.averageOccupancy}</div>
-                  </div>
-                </div>
-
-                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 8 }}>
-                  Lighting: <strong>{obs.lightingState}</strong> (source: {obs.lightingProvenance})
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => onInspectIn3D(obs.roomId)}
-                  className="btn btn--secondary btn--sm w-full"
-                  style={{ justifyContent: 'center' }}
+            {Object.values(latestResult.observations).map((obs) => {
+              const currentOcc = obs.currentOccupancy ?? 0;
+              const frameDet = obs.detectionCount ?? currentOcc;
+              const uniqueTracked = obs.uniqueTrackedPeople ?? currentOcc;
+              return (
+                <div
+                  key={obs.roomId}
+                  className="card card--compact"
+                  style={{
+                    background: 'var(--bg-surface)',
+                    border: obs.anomalies.length > 0 ? '1px solid rgba(239,68,68,0.4)' : '1px solid var(--border-card)',
+                  }}
                 >
-                  🔍 View in 3D Digital Twin
-                </button>
-              </div>
-            ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{obs.roomName}</span>
+                    <span className="badge badge--green" title="Temporal stability score across smoothing window">
+                      {Math.round(obs.confidence * 100)}% Stability
+                    </span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, margin: '8px 0' }}>
+                    <div>
+                      <span className="text-xs text-muted" title="Distinct active tracks currently in room">CURRENT OCC.</span>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 800, color: currentOcc === 0 ? 'var(--color-warning)' : 'var(--color-text)' }}>
+                        {currentOcc}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted" title="Raw bounding boxes detected in latest frame">FRAME DET.</span>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-text-muted)' }}>
+                        {frameDet}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted" title="Cumulative distinct track IDs observed">UNIQUE TRK.</span>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+                        {uniqueTracked}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 8 }}>
+                    <span>Peak: <strong>{obs.peakOccupancy}</strong></span>
+                    <span>Avg: <strong>{obs.averageOccupancy}</strong></span>
+                    <span>Lighting: <strong>{obs.lightingState}</strong></span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => onInspectIn3D(obs.roomId)}
+                    className="btn btn--secondary btn--sm w-full"
+                    style={{ justifyContent: 'center' }}
+                  >
+                    🔍 View in 3D Digital Twin
+                  </button>
+                </div>
+              );
+            })}
           </div>
 
           {/* Timeline Events Log */}
@@ -452,7 +471,7 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
                       CHRONOLOGICAL CV DETECTION EVENTS ({filteredTimeline.length})
                     </div>
                     <div style={{ fontSize: '0.70rem', color: 'var(--text-muted)' }}>
-                      Strictly sequenced chronologically with frame-by-frame tracking & confidence scores
+                      Strictly ordered chronologically by presentation timecode · Distinguishing active tracks, frame detections & unique tracking IDs
                     </div>
                   </div>
 
@@ -488,7 +507,7 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
 
                 <div
                   style={{
-                    maxHeight: 260,
+                    maxHeight: 280,
                     overflowY: 'auto',
                     borderRadius: 'var(--radius-md)',
                     border: '1px solid var(--border-subtle)',
@@ -500,15 +519,19 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
                       <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left', position: 'sticky', top: 0, background: 'var(--color-card-elevated)', zIndex: 10 }}>
                         <th style={{ padding: '8px 12px' }}>TIMECODE</th>
                         <th style={{ padding: '8px 12px' }}>ZONE ID</th>
-                        <th style={{ padding: '8px 12px' }}>DETECTED OCCUPANCY</th>
+                        <th style={{ padding: '8px 12px' }}>CURRENT OCCUPANCY</th>
+                        <th style={{ padding: '8px 12px' }}>FRAME DETECTIONS</th>
+                        <th style={{ padding: '8px 12px' }}>UNIQUE TRACKED</th>
                         <th style={{ padding: '8px 12px' }}>TRACKING / ACTIVITY</th>
-                        <th style={{ padding: '8px 12px', textAlign: 'right' }}>CONFIDENCE</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right' }} title="Temporal count-stability across smoothing window">
+                          STABILITY SCORE
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredTimeline.length === 0 ? (
                         <tr>
-                          <td colSpan={5} style={{ padding: '24px 12px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                          <td colSpan={7} style={{ padding: '28px 12px', textAlign: 'center', color: 'var(--text-muted)' }}>
                             No detection events found for this filter criteria.
                           </td>
                         </tr>
@@ -522,6 +545,9 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
                               : evt.roomId === 'lab'
                               ? '🔬'
                               : '💼';
+                          const currOcc = evt.currentOccupancy ?? evt.occupancy;
+                          const frameDet = evt.detectionCount ?? currOcc;
+                          const uniqTrk = evt.uniqueTrackedPeople ?? currOcc;
                           return (
                             <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                               <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)' }}>
@@ -536,13 +562,19 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
                                 <span style={{ marginRight: 6 }}>{icon}</span>
                                 {evt.roomId.replace('_', ' ')}
                               </td>
-                              <td style={{ padding: '8px 12px', fontWeight: 600 }}>
-                                <span style={{ color: evt.occupancy === 0 ? 'var(--color-warning)' : 'var(--color-text)' }}>
-                                  {evt.occupancy} {evt.occupancy === 1 ? 'occupant' : 'occupants'}
+                              <td style={{ padding: '8px 12px', fontWeight: 700 }}>
+                                <span style={{ color: currOcc === 0 ? 'var(--color-warning)' : 'var(--color-text)' }}>
+                                  {currOcc} active
                                 </span>
                               </td>
                               <td style={{ padding: '8px 12px', color: 'var(--color-text-muted)' }}>
-                                {evt.activity || 'Tracked Object'}
+                                {frameDet} bbox
+                              </td>
+                              <td style={{ padding: '8px 12px', color: 'var(--color-primary)' }}>
+                                {uniqTrk} unique
+                              </td>
+                              <td style={{ padding: '8px 12px', color: 'var(--color-text-muted)' }}>
+                                {evt.activity || 'Tracked Subject'}
                               </td>
                               <td
                                 style={{
@@ -561,9 +593,58 @@ export function VideoAnalysisPage({ latestResult, onAnalysisSuccess, onInspectIn
                     </tbody>
                   </table>
                 </div>
+
+                {/* Disclosures & Limitations footer */}
+                <div
+                  style={{
+                    marginTop: 16,
+                    padding: '10px 14px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    border: '1px solid var(--border-subtle)',
+                    fontSize: '0.70rem',
+                    color: 'var(--text-muted)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
+                  }}
+                >
+                  <div>
+                    <strong style={{ color: 'var(--color-text)' }}>Telemetry Disclosures & Camera Limitations:</strong>
+                  </div>
+                  <div>• <strong>Current occupancy:</strong> Estimated active ByteTrack trajectories currently inside the configured zone polygons.</div>
+                  <div>• <strong>Frame detections:</strong> Raw YOLOv8 person bounding boxes identified in the instantaneous video frame.</div>
+                  <div>• <strong>Unique tracked:</strong> Cumulative distinct track identifiers observed during the analyzed interval.</div>
+                  <div>• <strong>Stability score:</strong> Temporal count-stability across sliding window (2.0s track expiry grace period); does not indicate ground-truth probability.</div>
+                  <div>• <strong>Lighting provenance:</strong> Lighting states are manually configured or simulated and are not derived from computer vision detection.</div>
+                </div>
               </>
             );
           })()}
+        </div>
+      ) : (
+        /* Empty State */
+        <div
+          className="card"
+          style={{
+            background: 'var(--bg-card)',
+            border: '1px dashed var(--border-card)',
+            padding: 32,
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontSize: '2.4rem', marginBottom: 12 }}>📊</div>
+          <div style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 6 }}>
+            No CV Detection Events Recorded Yet
+          </div>
+          <div style={{ fontSize: '0.80rem', color: 'var(--text-muted)', maxWidth: 540, margin: '0 auto 16px', lineHeight: 1.5 }}>
+            Upload recorded surveillance footage in MP4, MOV, or AVI format to run YOLOv8 person detection and ByteTrack tracking across room zones.
+          </div>
+          <div style={{ display: 'inline-flex', gap: 10, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+            <span className="badge badge--blue">Zero Face Storage</span>
+            <span className="badge badge--green">Temporal Smoothing (2s Grace)</span>
+            <span className="badge badge--dark">Chronological Sequencing</span>
+          </div>
         </div>
       )}
     </div>

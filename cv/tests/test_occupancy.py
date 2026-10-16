@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import pytest
 
-from cv.src.occupancy import ZoneStabilizer, OccupancyStabilizer
+from cv.src.occupancy import ZoneStabilizer, OccupancyStabilizer, ActiveTrackTracker, ZoneOccupancyMetric
 
 
 class TestZoneStabilizerMode:
@@ -178,3 +178,44 @@ class TestOccupancyStabilizer:
         # After reset, window has only one value: 0
         for zone_id in self.ZONE_IDS:
             assert result[zone_id][0] == 0
+
+
+class TestActiveTrackTracker:
+    ZONE_IDS = ["classroom", "seminar_hall"]
+
+    def test_distinguishes_detection_count_and_current_occupancy(self):
+        tracker = ActiveTrackTracker(self.ZONE_IDS, window_size=3, track_expiry_sec=2.0)
+        # Frame 1 at t=0.0s: 2 people detected (track 1 and track 2)
+        m1 = tracker.update_frame({"classroom": [(1, 0.95), (2, 0.90)]}, timestamp_sec=0.0)
+        assert m1["classroom"].detection_count == 2
+        assert m1["classroom"].current_occupancy == 2
+        assert m1["classroom"].unique_tracked_people == 2
+
+        # Frame 2 at t=0.5s: track 1 momentarily occluded (only track 2 detected)
+        m2 = tracker.update_frame({"classroom": [(2, 0.92)]}, timestamp_sec=0.5)
+        assert m2["classroom"].detection_count == 1  # only 1 raw detection in this frame
+        assert m2["classroom"].current_occupancy == 2  # track 1 has not expired (< 2.0s), still active
+        assert m2["classroom"].unique_tracked_people == 2
+
+    def test_track_expires_after_expiry_threshold(self):
+        tracker = ActiveTrackTracker(self.ZONE_IDS, window_size=1, track_expiry_sec=1.5)
+        # Frame at t=0.0s with track 1
+        tracker.update_frame({"classroom": [(1, 0.95)]}, timestamp_sec=0.0)
+        
+        # Frame at t=2.0s with no detections in classroom
+        m = tracker.update_frame({"classroom": []}, timestamp_sec=2.0)
+        assert m["classroom"].detection_count == 0
+        assert m["classroom"].current_occupancy == 0
+        assert m["classroom"].unique_tracked_people == 1  # cumulative unique tracked is still 1!
+
+    def test_unique_tracked_people_does_not_inflate_current_occupancy(self):
+        tracker = ActiveTrackTracker(self.ZONE_IDS, window_size=1, track_expiry_sec=1.0)
+        # Person 1 enters and leaves
+        tracker.update_frame({"classroom": [(1, 0.95)]}, timestamp_sec=0.0)
+        tracker.update_frame({"classroom": []}, timestamp_sec=2.0)
+        # Person 2 enters
+        m3 = tracker.update_frame({"classroom": [(2, 0.90)]}, timestamp_sec=3.0)
+        
+        assert m3["classroom"].detection_count == 1
+        assert m3["classroom"].current_occupancy == 1
+        assert m3["classroom"].unique_tracked_people == 2  # 2 unique people observed over time

@@ -23,7 +23,7 @@ import argparse
 import logging
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 from cv.src.config import load_config, default_config, CVConfig
@@ -154,6 +154,7 @@ def run_pipeline(cfg: CVConfig, video_override: str | None = None) -> None:
     # --- Main loop ---
     frame_count = 0
     perf_start = time.perf_counter()
+    base_start_time = datetime.now(tz=timezone.utc)
 
     logger.info("[Pipeline] Starting. Video: %s", video_path)
 
@@ -184,8 +185,8 @@ def run_pipeline(cfg: CVConfig, video_override: str | None = None) -> None:
                 # Stabilize
                 stabilized = stabilizer.update(raw_counts)
 
-                # Publish events
-                now_utc = datetime.now(tz=timezone.utc)
+                # Publish events with strictly monotonic video timestamps
+                event_ts = base_start_time + timedelta(seconds=frame_result.timestamp_sec)
                 for zone_id, (occ, conf) in stabilized.items():
                     zone = zone_manager.get_zone(zone_id)
                     light = zone.light_state if zone else "unknown"
@@ -195,7 +196,7 @@ def run_pipeline(cfg: CVConfig, video_override: str | None = None) -> None:
                         occupancy=occ,
                         light_state=light,
                         confidence=conf,
-                        ts=now_utc,
+                        ts=event_ts,
                     )
                     pub_manager.maybe_publish(event)
 
