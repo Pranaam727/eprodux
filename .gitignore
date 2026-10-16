@@ -45,9 +45,35 @@ ENV/
 env.bak/
 venv.bak/
 
+# YOLO model weights — obtain via documented procedure, never commit
+*.pt
+*.onnx
+*.engine
+*.torchscript
+
+# Local video files — never commit demo footage or private recordings
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.flv
+*.webm
+
+# Node & Frontend
+node_modules/
+.eslintcache
+frontend/dist/
+frontend/dist-ssr/
+
 # Local cache & indices
 .index_cache
 *.log
+cv_events_*.jsonl
+
+# Local config overrides (keep example configs committed)
+cv/config/cv.local.yaml
+cv/config/cv.yaml
 
 # OS & Editor metadata
 .DS_Store
@@ -57,3 +83,4 @@ Thumbs.db
 *.swp
 *.swo
 *~
+*.iml

@@ -47,8 +47,8 @@ eprodux/
 ├── docs/                       # Shared architecture and API documentation
 │   └── API_CONTRACTS.md        # Canonical API contracts source of truth
 ├── cv/                         # Member 1 — Computer Vision Pipeline
-│   ├── config/                 # Camera zone mapping & pipeline config
-│   ├── src/                    # Video capture, YOLO/mock detector, occupancy tracker
+│   ├── config/                 # YAML configuration (cv.example.yaml)
+│   ├── src/                    # Video source, YOLO detector, occupancy, health, publisher
 │   ├── tests/                  # 124 automated unit/integration tests
 │   ├── requirements.txt
 │   └── README.md
@@ -73,6 +73,7 @@ eprodux/
 │       └── README.md
 ├── .env.example                # Example environment configuration
 ├── .gitignore                  # Unified git ignore rules
+├── pytest.ini                  # Root pytest configuration
 └── README.md                   # This project README
 ```
 
@@ -118,6 +119,7 @@ pip install -r requirements.txt
 python -m pytest tests/ -v
 python src/main.py --config config/cv.example.yaml
 ```
+See [`cv/README.md`](cv/README.md) for full pipeline parameters and demo video ingestion instructions.
 
 ---
 
