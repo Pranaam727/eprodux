@@ -10,33 +10,35 @@ interface Props {
   lastUpdate: string;
   activeTab: string;
   onTabChange: (tab: string) => void;
+  onOpenUpload?: () => void;
 }
 
 const TABS = [
-  { id: 'overview',   label: '🏢 Overview' },
+  { id: 'landing',    label: '🌐 3D Landing' },
+  { id: 'overview',   label: '🏢 Operations Twin' },
   { id: 'simulator',  label: '⚡ What-If Simulator' },
   { id: 'charts',     label: '📊 Analytics' },
   { id: 'assistant',  label: '🤖 AI Assistant' },
 ];
 
-export function AppHeader({ floorState, lastUpdate, activeTab, onTabChange }: Props) {
+export function AppHeader({ floorState, lastUpdate, activeTab, onTabChange, onOpenUpload }: Props) {
   const isConnected = floorState?.connectionState === 'connected';
 
   return (
     <header className="app-header">
-      <div className="brand">
-        <div className="brand-logo" aria-hidden="true">EP</div>
+      <div className="brand" onClick={() => onTabChange('landing')} style={{ cursor: 'pointer' }}>
+        <div className="brand-logo" aria-hidden="true" style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)' }}>ET</div>
         <div>
-          <div className="brand-name">Eprodux</div>
+          <div className="brand-name" style={{ background: 'linear-gradient(90deg, #10b981, #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>EcoTwin</div>
           <div className="brand-subtitle">
             {floorState
               ? `${floorState.buildingName} · ${floorState.floorName}`
-              : 'Digital Twin – Building Energy Intelligence'}
+              : 'University Building Digital Twin'}
           </div>
         </div>
       </div>
 
-      <nav className="tab-bar" style={{ marginBottom: 0, borderBottom: 'none', flex: 1, marginLeft: 32 }}
+      <nav className="tab-bar" style={{ marginBottom: 0, borderBottom: 'none', flex: 1, marginLeft: 24 }}
            role="navigation" aria-label="Main navigation">
         {TABS.map(t => (
           <button
@@ -53,6 +55,16 @@ export function AppHeader({ floorState, lastUpdate, activeTab, onTabChange }: Pr
       </nav>
 
       <div className="header-meta">
+        {onOpenUpload && (
+          <button
+            type="button"
+            onClick={onOpenUpload}
+            className="btn btn--primary btn--sm"
+            style={{ marginRight: 8 }}
+          >
+            📹 Upload Video
+          </button>
+        )}
         {IS_DEMO && (
           <span className="badge badge--demo">⚗️ DEMO MODE</span>
         )}

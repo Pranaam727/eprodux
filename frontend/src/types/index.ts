@@ -173,3 +173,54 @@ export interface ApiResponse<T> {
   error: string | null;
   isLoading: boolean;
 }
+
+// ---------------------------------------------------------------
+// Video Upload & CV Analysis Pipeline Contracts
+// ---------------------------------------------------------------
+export type VideoAnalysisStatus =
+  | 'idle'
+  | 'selected'
+  | 'uploading'
+  | 'queued'
+  | 'processing'
+  | 'completed'
+  | 'failed'
+  | 'cancelled';
+
+export interface VideoAnalysisEvent {
+  timestampSeconds: number;
+  timecode: string;
+  roomId: RoomId;
+  occupancy: number;
+  confidence: number;
+}
+
+export interface VideoRoomObservation {
+  roomId: RoomId;
+  roomName: string;
+  peakOccupancy: number;
+  averageOccupancy: number;
+  currentOccupancy: number | null;
+  lightingState: LightState;
+  lightingProvenance: 'manual' | 'simulated' | 'unknown';
+  anomalies: string[];
+  confidence: number;
+  freshnessIso: string;
+}
+
+export interface VideoAnalysisResult {
+  jobId: string;
+  fileName: string;
+  fileSizeBytes: number;
+  durationSeconds: number;
+  fps: number;
+  totalFrames: number;
+  status: 'completed' | 'failed';
+  isDemo: boolean;
+  processedAt: string;
+  observations: Record<RoomId, VideoRoomObservation>;
+  timeline: VideoAnalysisEvent[];
+  summary: string;
+  warnings: string[];
+}
+

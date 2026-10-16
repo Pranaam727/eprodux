@@ -777,3 +777,24 @@ hr { border: none; border-top: 1px solid var(--border-subtle); margin: var(--spa
 .pointer { cursor: pointer; }
 .select-none { user-select: none; }
 .capitalize { text-transform: capitalize; }
+
+/* ---------------------------------------------------------------
+   3D Landing Page Styles & Responsiveness
+---------------------------------------------------------------- */
+.digital-twin-3d-wrap {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(34, 197, 94, 0.12);
+  transition: border-color 0.2s ease;
+}
+.digital-twin-3d-wrap:hover {
+  border-color: rgba(34, 197, 94, 0.5) !important;
+}
+
+@media (max-width: 1024px) {
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .nav-links {
+    display: none !important;
+  }
+}
+

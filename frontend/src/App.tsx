@@ -1,9 +1,19 @@
 // ============================================================
-// App.tsx – root component, state management, data loading
+// App.tsx – EcoTwin Root Component
+// Integrates 3D Landing Page, Video Upload Workflow, and
+// Full Digital Twin Operational Dashboard.
 // ============================================================
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { FloorState, Alert, Recommendation, RoomId, EnergyDataPoint, OccupancyDataPoint } from './types';
+import type {
+  FloorState,
+  Alert,
+  Recommendation,
+  RoomId,
+  EnergyDataPoint,
+  OccupancyDataPoint,
+  VideoAnalysisResult,
+} from './types';
 import {
   fetchFloorState,
   fetchAlerts,
@@ -26,6 +36,20 @@ import { WhatIfSimulator } from './components/WhatIfSimulator';
 import { AnalyticsChart } from './components/AnalyticsChart';
 import { ChatAssistant } from './components/ChatAssistant';
 
+// Landing Page Components
+import { LandingHeader } from './components/landing/LandingHeader';
+import { LandingHero } from './components/landing/LandingHero';
+import { LandingHowItWorks } from './components/landing/LandingHowItWorks';
+import { LandingFourRooms } from './components/landing/LandingFourRooms';
+import { LandingInsights } from './components/landing/LandingInsights';
+import { LandingTechStack } from './components/landing/LandingTechStack';
+import { LandingTransparency } from './components/landing/LandingTransparency';
+import { LandingFooter } from './components/landing/LandingFooter';
+
+// Video Modals
+import { VideoUploadModal } from './components/VideoUploadModal';
+import { AnalysisResultsModal } from './components/AnalysisResultsModal';
+
 // ---------------------------------------------------------------
 // Toast notification system
 // ---------------------------------------------------------------
@@ -40,17 +64,17 @@ function useToasts() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const show = useCallback((message: string, type: Toast['type'] = 'success') => {
     const id = `toast-${Date.now()}-${toastCounter++}`;
-    setToasts(prev => [...prev, { id, type, message }]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
+    setToasts((prev) => [...prev, { id, type, message }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
   }, []);
   return { toasts, show };
 }
 
 // ---------------------------------------------------------------
-// Main App
+// Main App Component
 // ---------------------------------------------------------------
 export default function App() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState<'landing' | 'overview' | 'simulator' | 'charts' | 'assistant'>('landing');
   const [floorState, setFloorState] = useState<FloorState | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
@@ -60,9 +84,13 @@ export default function App() {
   const [lastUpdate, setLastUpdate] = useState<string>(new Date().toISOString());
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const { toasts, show: showToast } = useToasts();
 
-  // Track WS cleanup
+  // Video Upload & Analysis Modal States
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isResultsModalOpen, setIsResultsModalOpen] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<VideoAnalysisResult | null>(null);
+
+  const { toasts, show: showToast } = useToasts();
   const wsCleanupRef = useRef<(() => void) | null>(null);
 
   // ---------------------------------------------------------------
@@ -98,7 +126,9 @@ export default function App() {
     }
 
     void load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ---------------------------------------------------------------
@@ -109,7 +139,7 @@ export default function App() {
 
     const cleanup = connectWebSocket(
       (update) => {
-        setFloorState(prev => prev ? { ...prev, ...update } : null);
+        setFloorState((prev) => (prev ? { ...prev, ...update } : null));
         setLastUpdate(new Date().toISOString());
       },
       (status) => {
@@ -125,44 +155,90 @@ export default function App() {
   // ---------------------------------------------------------------
   // Recommendation accept / dismiss
   // ---------------------------------------------------------------
-  const handleAccept = useCallback(async (id: string) => {
-    setRecommendations(prev =>
-      prev.map(r => r.id === id ? { ...r, status: 'accepted' } : r)
-    );
-    showToast('Recommendation accepted – dashboard state updated. No physical device was changed.', 'success');
-    await acceptRecommendation(id);
+  const handleAccept = useCallback(
+    async (id: string) => {
+      setRecommendations((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: 'accepted' } : r)),
+      );
+      showToast('Recommendation accepted for review. No physical device was changed.', 'success');
+      await acceptRecommendation(id);
+    },
+    [showToast],
+  );
+
+  const handleDismiss = useCallback(
+    async (id: string) => {
+      setRecommendations((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: 'dismissed' } : r)),
+      );
+      showToast('Recommendation dismissed.', 'info');
+      await dismissRecommendation(id);
+    },
+    [showToast],
+  );
+
+  // ---------------------------------------------------------------
+  // Video Analysis Handlers
+  // ---------------------------------------------------------------
+  const handleAnalysisComplete = useCallback((result: VideoAnalysisResult) => {
+    setAnalysisResult(result);
+    setIsResultsModalOpen(true);
+    showToast(`Video analysis finished: ${result.fileName}`, 'success');
+
+    // Optionally reflect observation into local floorState if relevant
+    setFloorState((prev) => {
+      if (!prev) return prev;
+      const updatedRooms = { ...prev.rooms };
+      Object.entries(result.observations).forEach(([roomId, obs]) => {
+        const id = roomId as RoomId;
+        if (updatedRooms[id]) {
+          updatedRooms[id] = {
+            ...updatedRooms[id],
+            occupancy: obs.currentOccupancy,
+            confidence: obs.confidence,
+            lastUpdated: obs.freshnessIso,
+          };
+        }
+      });
+      return {
+        ...prev,
+        rooms: updatedRooms,
+      };
+    });
   }, [showToast]);
 
-  const handleDismiss = useCallback(async (id: string) => {
-    setRecommendations(prev =>
-      prev.map(r => r.id === id ? { ...r, status: 'dismissed' } : r)
-    );
-    showToast('Recommendation dismissed.', 'info');
-    await dismissRecommendation(id);
-  }, [showToast]);
+  const handleInspectRoomFromResults = useCallback((roomId: RoomId) => {
+    setSelectedRoomId(roomId);
+    setIsResultsModalOpen(false);
+    // Smooth scroll to 3D canvas or rooms section
+    const el = document.getElementById('hero-section') || document.getElementById('twin-section');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }, []);
 
   // ---------------------------------------------------------------
   // Derived values
   // ---------------------------------------------------------------
-  const activeAlerts = alerts.filter(a => a.status === 'active');
+  const activeAlerts = alerts.filter((a) => a.status === 'active');
   const potentialSavingsKwh = recommendations
-    .filter(r => r.status === 'pending')
+    .filter((r) => r.status === 'pending')
     .reduce((sum, r) => sum + r.estimatedEnergySavedKwh, 0);
 
-  const selectedRoom = selectedRoomId && floorState
-    ? floorState.rooms[selectedRoomId]
-    : null;
+  const selectedRoom = selectedRoomId && floorState ? floorState.rooms[selectedRoomId] : null;
 
   // ---------------------------------------------------------------
-  // Loading / error state
+  // Loading state
   // ---------------------------------------------------------------
   if (isLoading) {
     return (
       <div className="app-layout">
         <div style={{ padding: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-            <div className="brand-logo">EP</div>
-            <div className="brand-name">Eprodux</div>
+            <div className="brand-logo" style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)' }}>
+              ET
+            </div>
+            <div className="brand-name" style={{ background: 'linear-gradient(90deg, #10b981, #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              EcoTwin
+            </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 12 }}>
             {Array.from({ length: 5 }).map((_, i) => (
@@ -180,12 +256,22 @@ export default function App() {
   // ---------------------------------------------------------------
   return (
     <div className="app-layout">
-      <AppHeader
-        floorState={floorState}
-        lastUpdate={lastUpdate}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
+      {/* Dynamic Header based on active tab */}
+      {activeTab === 'landing' ? (
+        <LandingHeader
+          floorState={floorState}
+          onOpenUpload={() => setIsUploadModalOpen(true)}
+          onNavigateToDashboard={() => setActiveTab('overview')}
+        />
+      ) : (
+        <AppHeader
+          floorState={floorState}
+          lastUpdate={lastUpdate}
+          activeTab={activeTab}
+          onTabChange={(tab: any) => setActiveTab(tab)}
+          onOpenUpload={() => setIsUploadModalOpen(true)}
+        />
+      )}
 
       {loadError && (
         <div
@@ -204,7 +290,69 @@ export default function App() {
         </div>
       )}
 
-      {/* ── OVERVIEW TAB ── */}
+      {/* ── 3D LANDING PAGE VIEW ── */}
+      {activeTab === 'landing' && (
+        <main role="main">
+          <LandingHero
+            floorState={floorState}
+            selectedRoomId={selectedRoomId}
+            onRoomSelect={(id) => setSelectedRoomId((prev) => (prev === id ? null : id))}
+            onOpenUpload={() => setIsUploadModalOpen(true)}
+            onExploreTwin={() => {
+              const el = document.getElementById('twin-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
+
+          {/* Selected Room Details Drawer when room is clicked in 3D scene */}
+          {selectedRoom && (
+            <div style={{ maxWidth: 1600, margin: '0 auto 24px', padding: '0 24px' }}>
+              <RoomDetailPanel
+                room={selectedRoom}
+                alerts={alerts}
+                recommendations={recommendations}
+                onClose={() => setSelectedRoomId(null)}
+              />
+            </div>
+          )}
+
+          {/* Sustainability KPI Cards Row */}
+          <div style={{ maxWidth: 1600, margin: '0 auto', padding: '0 24px' }}>
+            <KPICards
+              floorState={floorState}
+              activeAlerts={activeAlerts}
+              potentialSavingsKwh={potentialSavingsKwh}
+            />
+          </div>
+
+          <LandingHowItWorks />
+
+          <LandingFourRooms
+            floorState={floorState}
+            selectedRoomId={selectedRoomId}
+            onRoomSelect={(id) => {
+              setSelectedRoomId(id);
+              const el = document.getElementById('hero-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
+
+          <LandingInsights
+            recommendations={recommendations}
+            onAccept={handleAccept}
+            onDismiss={handleDismiss}
+            onExploreInsights={() => setActiveTab('assistant')}
+          />
+
+          <LandingTechStack />
+
+          <LandingTransparency />
+
+          <LandingFooter />
+        </main>
+      )}
+
+      {/* ── OPERATIONS TWIN / OVERVIEW TAB ── */}
       {activeTab === 'overview' && (
         <main className="main-content" role="main">
           {/* Left column */}
@@ -218,7 +366,7 @@ export default function App() {
             <FloorPlan
               floorState={floorState}
               selectedRoomId={selectedRoomId}
-              onRoomSelect={(id) => setSelectedRoomId(prev => prev === id ? null : id)}
+              onRoomSelect={(id) => setSelectedRoomId((prev) => (prev === id ? null : id))}
             />
 
             {selectedRoom && (
@@ -249,30 +397,80 @@ export default function App() {
 
           {/* Right sidebar */}
           <div className="sidebar">
+            {/* Quick Upload Video Widget */}
+            <div className="card card--compact" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(6,182,212,0.05))', border: '1px solid var(--border-accent)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <span style={{ fontSize: '1.4rem' }}>📹</span>
+                <div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>Upload Video Footage</div>
+                  <div style={{ fontSize: '0.70rem', color: 'var(--text-muted)' }}>Analyze room occupancy with YOLOv8</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsUploadModalOpen(true)}
+                className="btn btn--primary btn--sm w-full"
+                style={{ justifyContent: 'center' }}
+              >
+                Launch Video Analysis
+              </button>
+            </div>
+
             {/* Pipeline status card */}
             <div className="card card--compact">
               <div className="section-title" style={{ marginBottom: 12 }}>
                 Pipeline Status
               </div>
               {([
-                { step: 'Sense',  desc: 'Camera & meter events',     status: floorState?.connectionState === 'connected' ? 'on' : 'offline' },
-                { step: 'See',    desc: 'CV occupancy estimation',    status: 'on' },
-                { step: 'Twin',   desc: 'Digital room state',         status: 'on' },
-                { step: 'Think',  desc: 'GenAI recommendations',      status: IS_DEMO ? 'unknown' : 'on' },
-                { step: 'Act',    desc: 'Human review & what-if',     status: 'on' },
+                {
+                  step: 'Sense',
+                  desc: 'Camera & meter events',
+                  status: floorState?.connectionState === 'connected' ? 'on' : 'offline',
+                },
+                { step: 'See', desc: 'CV occupancy estimation', status: 'on' },
+                { step: 'Twin', desc: 'Digital room state', status: 'on' },
+                { step: 'Think', desc: 'GenAI recommendations', status: IS_DEMO ? 'unknown' : 'on' },
+                { step: 'Act', desc: 'Human review & what-if', status: 'on' },
               ] as const).map((item, i) => (
                 <div
                   key={item.step}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', borderBottom: i < 4 ? '1px solid var(--border-subtle)' : 'none' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '6px 0',
+                    borderBottom: i < 4 ? '1px solid var(--border-subtle)' : 'none',
+                  }}
                 >
                   <div
                     style={{
-                      width: 28, height: 28,
+                      width: 28,
+                      height: 28,
                       borderRadius: '50%',
-                      background: item.status === 'on' ? 'var(--accent-green-bg)' : item.status === 'offline' ? 'var(--alert-critical-bg)' : 'rgba(245,158,11,0.1)',
-                      border: `1px solid ${item.status === 'on' ? 'var(--accent-green)' : item.status === 'offline' ? 'var(--alert-critical)' : 'var(--alert-warning)'}`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '0.70rem', fontWeight: 700, color: item.status === 'on' ? 'var(--accent-green)' : item.status === 'offline' ? 'var(--alert-critical)' : 'var(--alert-warning)',
+                      background:
+                        item.status === 'on'
+                          ? 'var(--accent-green-bg)'
+                          : item.status === 'offline'
+                          ? 'var(--alert-critical-bg)'
+                          : 'rgba(245,158,11,0.1)',
+                      border: `1px solid ${
+                        item.status === 'on'
+                          ? 'var(--accent-green)'
+                          : item.status === 'offline'
+                          ? 'var(--alert-critical)'
+                          : 'var(--alert-warning)'
+                      }`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.70rem',
+                      fontWeight: 700,
+                      color:
+                        item.status === 'on'
+                          ? 'var(--accent-green)'
+                          : item.status === 'offline'
+                          ? 'var(--alert-critical)'
+                          : 'var(--alert-warning)',
                       flexShrink: 0,
                     }}
                   >
@@ -283,7 +481,11 @@ export default function App() {
                     <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{item.desc}</div>
                   </div>
                   <div style={{ marginLeft: 'auto' }}>
-                    <span className={`status-dot status-dot--${item.status}${item.status === 'on' ? ' status-dot--pulse' : ''}`} />
+                    <span
+                      className={`status-dot status-dot--${item.status}${
+                        item.status === 'on' ? ' status-dot--pulse' : ''
+                      }`}
+                    />
                   </div>
                 </div>
               ))}
@@ -298,7 +500,6 @@ export default function App() {
                     <div style={{ fontWeight: 700, marginBottom: 4 }}>Demo Mode Active</div>
                     <div style={{ fontWeight: 400 }}>
                       All data on this dashboard is <strong>simulated</strong> for demonstration.
-                      Set <code style={{ fontFamily: 'var(--font-mono)', fontSize: '0.66rem' }}>VITE_DEMO_MODE=false</code> to connect to live backend services.
                     </div>
                   </div>
                 </div>
@@ -308,27 +509,46 @@ export default function App() {
             {/* Quick room status list */}
             {floorState && (
               <div className="card card--compact">
-                <div className="section-title" style={{ marginBottom: 12 }}>Room Status</div>
-                {(Object.values(floorState.rooms) as import('./types').RoomState[]).map(room => (
+                <div className="section-title" style={{ marginBottom: 12 }}>
+                  Room Status
+                </div>
+                {(Object.values(floorState.rooms) as import('./types').RoomState[]).map((room) => (
                   <button
                     key={room.id}
                     id={`room-btn-${room.id}`}
                     onClick={() => {
                       setSelectedRoomId(room.id);
-                      setActiveTab('overview');
                     }}
                     style={{
-                      width: '100%', textAlign: 'left', background: 'none', border: 'none',
-                      cursor: 'pointer', padding: '8px 0', borderBottom: '1px solid var(--border-subtle)',
-                      display: 'flex', alignItems: 'center', gap: 10,
+                      width: '100%',
+                      textAlign: 'left',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '8px 0',
+                      borderBottom: '1px solid var(--border-subtle)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
                     }}
                     aria-label={`View ${room.name} details`}
                   >
-                    <span className={`status-dot status-dot--${room.connectionState === 'offline' ? 'offline' : room.lightState === 'ON' ? 'on' : 'off'}`} />
+                    <span
+                      className={`status-dot status-dot--${
+                        room.connectionState === 'offline'
+                          ? 'offline'
+                          : room.lightState === 'ON'
+                          ? 'on'
+                          : 'off'
+                      }`}
+                    />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)' }}>{room.name}</div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {room.name}
+                      </div>
                       <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                        {room.occupancy != null ? `${room.occupancy} occupants` : 'Occupancy UNKNOWN'} · {room.lightState} (manual)
+                        {room.occupancy != null ? `${room.occupancy} occupants` : 'Occupancy UNKNOWN'} ·{' '}
+                        {room.lightState} (manual)
                       </div>
                     </div>
                     <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>›</span>
@@ -374,9 +594,24 @@ export default function App() {
         </main>
       )}
 
+      {/* Video Upload Modal */}
+      <VideoUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onAnalysisComplete={handleAnalysisComplete}
+      />
+
+      {/* Video Analysis Results Modal */}
+      <AnalysisResultsModal
+        result={analysisResult}
+        isOpen={isResultsModalOpen}
+        onClose={() => setIsResultsModalOpen(false)}
+        onInspectRoom={handleInspectRoomFromResults}
+      />
+
       {/* Toast container */}
       <div className="toast-container" role="status" aria-live="polite">
-        {toasts.map(t => (
+        {toasts.map((t) => (
           <div key={t.id} className={`toast toast--${t.type}`}>
             {t.message}
           </div>

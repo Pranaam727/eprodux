@@ -65,6 +65,7 @@ node_modules/
 .eslintcache
 frontend/dist/
 frontend/dist-ssr/
+.firebase/
 
 # Local cache & indices
 .index_cache
