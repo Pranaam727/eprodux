@@ -25,7 +25,7 @@ $$\text{Sense} \longrightarrow \text{See (Computer Vision)} \longrightarrow \tex
 
 | Role | Member | Responsibilities | Status |
 | :--- | :--- | :--- | :--- |
-| **Sense & See** | Member 1 | Computer vision pipeline, video replay, occupancy detection, event publishing to `/api/events/cv`. | In Progress |
+| **Sense & See** | Member 1 | Computer vision pipeline, video replay, occupancy detection, event publishing to `/api/events/cv`. | ✅ Complete (`cv`) |
 | **Twin & Backend** | Member 2 | State engine, building model, `/api/summary`, idle-lit anomalies, WebSocket broadcasting (`ws://.../ws`). | ✅ Complete (`services/twin`) |
 | **Think** | Member 3 | GenAI service, RAG pipeline, deterministic savings, safety checks, `/api/recommendations`, `/api/chat`. | ✅ Complete (`services/genai`) |
 | **Act** | Member 4 | React 19 + Vite dashboard, 2D interactive floor plan, What-If simulator, alert & recommendation panels. | ✅ Complete (`frontend`) |
@@ -46,6 +46,12 @@ eprodux/
 │       └── daily_summary.schema.json
 ├── docs/                       # Shared architecture and API documentation
 │   └── API_CONTRACTS.md        # Canonical API contracts source of truth
+├── cv/                         # Member 1 — Computer Vision Pipeline
+│   ├── config/                 # Camera zone mapping & pipeline config
+│   ├── src/                    # Video capture, YOLO/mock detector, occupancy tracker
+│   ├── tests/                  # 124 automated unit/integration tests
+│   ├── requirements.txt
+│   └── README.md
 ├── frontend/                   # Member 4 — React 19 + TypeScript + Vite Dashboard
 │   ├── src/                    # Floor plan, KPI cards, simulator, charts, chat
 │   ├── package.json
@@ -104,6 +110,14 @@ $env:PYTHONPATH="services/genai"; python -m pytest tests/ -v
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
 ```
 Open API docs at [http://localhost:8002/docs](http://localhost:8002/docs).
+
+### D. Computer Vision Pipeline
+```bash
+cd cv
+pip install -r requirements.txt
+python -m pytest tests/ -v
+python src/main.py --config config/cv.example.yaml
+```
 
 ---
 

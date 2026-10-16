@@ -1,0 +1,157 @@
+# ============================================================
+# Eprodux CV Component — Example Configuration
+# Copy this file to cv.yaml and customise for your setup.
+# cv.yaml is git-ignored; cv.example.yaml is committed.
+# ============================================================
+
+# ------------------------------------
+# Video source
+# ------------------------------------
+video_source:
+  # Path to the recorded video file (required for recorded mode).
+  # Override on the CLI with --video <path>.
+  path: "data/demo.mp4"
+
+  # Replay the video indefinitely (useful for demos).
+  loop: false
+
+  # Frames per second to actually process.
+  # Independent of the video's native FPS — we skip frames to hit this target.
+  # Range: 1–30. Default 3 gives a reasonable trade-off for occupancy counting.
+  target_fps: 3
+
+  # Inference resolution (width x height).
+  # Smaller = faster inference; larger = better detection of distant people.
+  inference_width: 640
+  inference_height: 384
+
+# ------------------------------------
+# YOLO model
+# ------------------------------------
+model:
+  # Path to YOLO weights. Use a local .pt file or a model name recognized by
+  # Ultralytics (e.g. "yolov8n.pt"). The file must NOT be committed to git.
+  # Run:  python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
+  # to pre-download the default model.
+  weights: "yolov8n.pt"
+
+  # Minimum detection confidence to keep a detection.
+  confidence_threshold: 0.35
+
+  # IoU threshold for NMS inside YOLO.
+  iou_threshold: 0.45
+
+  # YOLO class index for "person" in the COCO dataset.
+  # Do not change unless using a custom model with a different class list.
+  person_class_id: 0
+
+# ------------------------------------
+# Tracker
+# ------------------------------------
+tracker:
+  # Tracker type recognized by Ultralytics.
+  # "bytetrack" is the recommended and tested option.
+  type: "bytetrack"
+
+# ------------------------------------
+# Occupancy stabilization
+# ------------------------------------
+stabilization:
+  # Number of recent frames whose counts are fed into the stabilizer.
+  window_size: 5
+
+  # Method: "mode" (most frequent count in window) or "median".
+  method: "mode"
+
+# ------------------------------------
+# Room zones
+# ------------------------------------
+# Polygons are in NORMALIZED coordinates: x in [0,1], y in [0,1].
+# (0,0) = top-left corner of the frame; (1,1) = bottom-right.
+# A person is assigned to a zone based on the bottom-center of their bounding box.
+# Zones must not overlap. At least 3 vertices required per polygon.
+#
+# Calibration: pause your video, note pixel (px, py) for each corner, then:
+#   x_norm = px / frame_width,  y_norm = py / frame_height
+#
+# The values below are PLACEHOLDERS — replace them with your actual measurements.
+zones:
+  - id: "seminar_hall"
+    name: "Seminar Hall"
+    # Lighting state for this room: "on", "off", or "unknown".
+    # This is MANUALLY SUPPLIED — not detected by the CV component.
+    light_state: "on"
+    polygon:
+      - [0.0, 0.0]
+      - [0.5, 0.0]
+      - [0.5, 0.5]
+      - [0.0, 0.5]
+
+  - id: "classroom"
+    name: "Classroom"
+    light_state: "on"
+    polygon:
+      - [0.5, 0.0]
+      - [1.0, 0.0]
+      - [1.0, 0.5]
+      - [0.5, 0.5]
+
+  - id: "lab"
+    name: "Lab"
+    light_state: "off"
+    polygon:
+      - [0.0, 0.5]
+      - [0.5, 0.5]
+      - [0.5, 1.0]
+      - [0.0, 1.0]
+
+  - id: "office"
+    name: "Office"
+    light_state: "unknown"
+    polygon:
+      - [0.5, 0.5]
+      - [1.0, 0.5]
+      - [1.0, 1.0]
+      - [0.5, 1.0]
+
+# ------------------------------------
+# Event publishing
+# ------------------------------------
+publisher:
+  # "stdout"  — print JSON events to standard output (default; no dependencies)
+  # "file"    — append JSON events to a .jsonl file
+  # "http"    — POST events to a backend URL (requires backend to be running)
+  type: "stdout"
+
+  # For type=file:
+  # output_file: "cv_events.jsonl"
+
+  # For type=http:
+  # url: "http://localhost:8000/api/cv-events"
+  # timeout_seconds: 2
+
+  # Publish an event even if nothing changed, at this interval (seconds).
+  # Ensures the backend can recover from missed events.
+  periodic_interval_seconds: 10
+
+  # Minimum seconds between duplicate-suppressed events for the same zone.
+  min_publish_interval_seconds: 1
+
+# ------------------------------------
+# Health monitoring
+# ------------------------------------
+health:
+  # Consecutive missed/unreadable frames before declaring the source degraded.
+  degraded_after_missed_frames: 3
+
+  # Consecutive missed/unreadable frames before declaring the source failed.
+  failed_after_missed_frames: 10
+
+  # Log health state changes.
+  log_health_changes: true
+
+# ------------------------------------
+# Logging
+# ------------------------------------
+logging:
+  level: "INFO"   # DEBUG, INFO, WARNING, ERROR

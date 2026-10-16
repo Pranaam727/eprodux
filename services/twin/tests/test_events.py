@@ -95,8 +95,9 @@ def test_duplicate_event_deduplication(client):
 
 
 def test_older_out_of_order_event_ignored(client):
-    base_time = datetime(2026, 10, 15, 12, 0, 10, tzinfo=timezone.utc)
-    older_time = datetime(2026, 10, 15, 12, 0, 0, tzinfo=timezone.utc)
+    now = datetime.now(timezone.utc)
+    base_time = now - timedelta(seconds=5)
+    older_time = now - timedelta(seconds=15)
 
     # Ingest newer event first
     newer_evt = {
