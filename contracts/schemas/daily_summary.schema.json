@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eprodux.internal/schemas/daily_summary.schema.json",
+  "title": "DailySummary",
+  "description": "Daily aggregate summary exposing observation window, data provenance, and completeness flags. Incomplete or mock windows are explicitly flagged.",
+  "type": "object",
+  "properties": {
+    "period": {
+      "type": "string",
+      "enum": ["day"]
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "mode": { "type": "string", "enum": ["mock", "live", "replay"] },
+        "storage": { "type": "string" },
+        "is_mock_data": { "type": "boolean" }
+      },
+      "required": ["mode", "storage", "is_mock_data"],
+      "additionalProperties": false
+    },
+    "observation_window": {
+      "type": "object",
+      "properties": {
+        "start_time": { "type": ["string", "null"], "format": "date-time" },
+        "end_time": { "type": ["string", "null"], "format": "date-time" },
+        "duration_seconds": { "type": "number", "minimum": 0.0 },
+        "coverage_ratio_24h": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Ratio of observed duration against 24 hours (86,400 seconds). Incomplete sessions will have coverage < 1.0."
+        }
+      },
+      "required": ["start_time", "end_time", "duration_seconds", "coverage_ratio_24h"],
+      "additionalProperties": false
+    },
+    "completeness_status": {
+      "type": "string",
+      "enum": ["complete", "incomplete", "insufficient_data"]
+    },
+    "data_quality_notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "total_waste_hours": {
+          "type": "number",
+          "minimum": 0.0,
+          "description": "Total cumulative hours across rooms where lights were ON while room was verified vacant."
+        },
+        "total_estimated_waste_kwh": {
+          "type": "number",
+          "minimum": 0.0,
+          "description": "Estimated energy wasted calculated strictly from known rated power of lighting groups."
+        },
+        "rooms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "room_id": {
+                "type": "string",
+                "enum": ["seminar_hall", "classroom", "lab", "office"]
+              },
+              "name": { "type": "string" },
+              "observed_seconds": { "type": "number", "minimum": 0.0 },
+              "waste_hours": { "type": "number", "minimum": 0.0 },
+              "estimated_waste_kwh": { "type": "number", "minimum": 0.0 },
+              "utilization_rate": {
+                "type": ["number", "null"],
+                "minimum": 0.0,
+                "maximum": 1.0,
+                "description": "Fraction of observed time with known occupancy > 0. Null if observed duration is zero."
+              },
+              "anomalies_detected": {
+                "type": "array",
+                "items": { "type": "object" }
+              }
+            },
+            "required": ["room_id", "name", "observed_seconds", "waste_hours", "estimated_waste_kwh", "utilization_rate", "anomalies_detected"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["total_waste_hours", "total_estimated_waste_kwh", "rooms"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "period",
+    "generated_at",
+    "provenance",
+    "observation_window",
+    "completeness_status",
+    "data_quality_notes",
+    "metrics"
+  ],
+  "additionalProperties": false
+}

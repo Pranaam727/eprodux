@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "building_id": "eprodux_bldg_01",
+  "name": "Academic Science & Engineering Complex",
+  "provenance": {
+    "config_status": "prototype_specification",
+    "floor_layout": "canonical_four_room_zone",
+    "simulation_note": "Sample device ratings and environmental readings are simulated for prototype verification and do not represent a surveyed or calibrated real building."
+  },
+  "floors": [
+    {
+      "floor_id": "floor_01",
+      "name": "First Floor",
+      "level": 1,
+      "rooms": [
+        {
+          "room_id": "seminar_hall",
+          "name": "Seminar Hall",
+          "room_type": "auditorium",
+          "area_sqm": 180.0,
+          "capacity_max": 120,
+          "lighting_group_id": "sh_lights_01",
+          "devices": [
+            {
+              "device_id": "sh_lights_01",
+              "type": "lighting_group",
+              "description": "Dimmable LED ceiling array (Group 1)",
+              "rated_power_w": 1200.0,
+              "source": "simulated"
+            },
+            {
+              "device_id": "sh_cam_01",
+              "type": "camera",
+              "description": "Ceiling-mounted wide-angle camera",
+              "source": "recorded-video",
+              "rated_power_w": 15.0
+            },
+            {
+              "device_id": "sh_hvac_01",
+              "type": "hvac_terminal",
+              "description": "VAV air terminal unit",
+              "source": "simulated",
+              "rated_power_w": null
+            },
+            {
+              "device_id": "sh_env_01",
+              "type": "environmental_sensor",
+              "description": "IAQ CO2, temperature, and humidity probe",
+              "source": "simulated",
+              "rated_power_w": null
+            }
+          ]
+        },
+        {
+          "room_id": "classroom",
+          "name": "Classroom 101",
+          "room_type": "classroom",
+          "area_sqm": 85.0,
+          "capacity_max": 45,
+          "lighting_group_id": "cr_lights_01",
+          "devices": [
+            {
+              "device_id": "cr_lights_01",
+              "type": "lighting_group",
+              "description": "Standard classroom fluorescent-equivalent LED fixtures",
+              "rated_power_w": 600.0,
+              "source": "simulated"
+            },
+            {
+              "device_id": "cr_cam_01",
+              "type": "camera",
+              "description": "Front-wall occupant detection camera",
+              "source": "recorded-video",
+              "rated_power_w": 15.0
+            },
+            {
+              "device_id": "cr_hvac_01",
+              "type": "hvac_terminal",
+              "description": "FCU heating/cooling fan coil",
+              "source": "simulated",
+              "rated_power_w": null
+            },
+            {
+              "device_id": "cr_env_01",
+              "type": "environmental_sensor",
+              "description": "Indoor air quality monitor",
+              "source": "simulated",
+              "rated_power_w": null
+            }
+          ]
+        },
+        {
+          "room_id": "lab",
+          "name": "Robotics & IoT Lab",
+          "room_type": "laboratory",
+          "area_sqm": 110.0,
+          "capacity_max": 30,
+          "lighting_group_id": "lab_lights_01",
+          "devices": [
+            {
+              "device_id": "lab_lights_01",
+              "type": "lighting_group",
+              "description": "High-lumen lab task and ambient lighting",
+              "rated_power_w": 800.0,
+              "source": "simulated"
+            },
+            {
+              "device_id": "lab_cam_01",
+              "type": "camera",
+              "description": "Overhead bench survey camera",
+              "source": "recorded-video",
+              "rated_power_w": 15.0
+            },
+            {
+              "device_id": "lab_hvac_01",
+              "type": "hvac_terminal",
+              "description": "Dedicated laboratory exhaust and supply terminal",
+              "source": "simulated",
+              "rated_power_w": null
+            },
+            {
+              "device_id": "lab_env_01",
+              "type": "environmental_sensor",
+              "description": "Multi-gas and particulate sensor unit",
+              "source": "simulated",
+              "rated_power_w": null
+            }
+          ]
+        },
+        {
+          "room_id": "office",
+          "name": "Faculty Office Suite",
+          "room_type": "office",
+          "area_sqm": 45.0,
+          "capacity_max": 6,
+          "lighting_group_id": "off_lights_01",
+          "devices": [
+            {
+              "device_id": "off_lights_01",
+              "type": "lighting_group",
+              "description": "Recessed troffer lighting",
+              "rated_power_w": 300.0,
+              "source": "simulated"
+            },
+            {
+              "device_id": "off_cam_01",
+              "type": "camera",
+              "description": "Entryway doorway survey camera",
+              "source": "recorded-video",
+              "rated_power_w": 15.0
+            },
+            {
+              "device_id": "off_hvac_01",
+              "type": "hvac_terminal",
+              "description": "Zone thermostat and diffuser",
+              "source": "simulated",
+              "rated_power_w": null
+            },
+            {
+              "device_id": "off_env_01",
+              "type": "environmental_sensor",
+              "description": "Comfort sensor (temp/humidity/CO2)",
+              "source": "simulated",
+              "rated_power_w": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

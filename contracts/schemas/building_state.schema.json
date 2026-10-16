@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eprodux.internal/schemas/building_state.schema.json",
+  "title": "BuildingStateSnapshot",
+  "description": "Snapshot representation of current digital-twin state across all 4 canonical rooms with granular per-field provenance.",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Identifier of the building."
+    },
+    "floor_id": {
+      "type": "string",
+      "description": "Identifier of the monitored floor."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when this twin state snapshot was computed."
+    },
+    "run_mode": {
+      "type": "string",
+      "enum": ["mock", "live", "replay"],
+      "description": "Execution mode of the digital twin backend."
+    },
+    "rooms": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RoomState"
+      },
+      "minItems": 4,
+      "maxItems": 4,
+      "description": "State entries for the exactly four canonical rooms."
+    }
+  },
+  "required": ["building_id", "floor_id", "updated_at", "run_mode", "rooms"],
+  "additionalProperties": false,
+  "$defs": {
+    "AnomalyAlert": {
+      "type": "object",
+      "properties": {
+        "rule_id": { "type": "string" },
+        "severity": { "type": "string", "enum": ["info", "warning", "critical"] },
+        "message": { "type": "string" },
+        "raised_at": { "type": "string", "format": "date-time" },
+        "evidence": { "type": "object" }
+      },
+      "required": ["rule_id", "severity", "message", "raised_at", "evidence"],
+      "additionalProperties": false
+    },
+    "EnvironmentalReadings": {
+      "type": "object",
+      "properties": {
+        "temperature_c": { "type": ["number", "null"] },
+        "relative_humidity_pct": { "type": ["number", "null"] },
+        "co2_ppm": { "type": ["number", "null"] },
+        "provenance": { "type": "string", "enum": ["simulated", "sensor", "unknown"] }
+      },
+      "required": ["provenance"],
+      "additionalProperties": false
+    },
+    "EnergyReadings": {
+      "type": "object",
+      "properties": {
+        "estimated_current_power_w": { "type": ["number", "null"] },
+        "provenance": { "type": "string", "enum": ["simulated", "metered", "calculated"] },
+        "calculation_basis": { "type": ["string", "null"] }
+      },
+      "required": ["provenance"],
+      "additionalProperties": false
+    },
+    "RoomProvenance": {
+      "type": "object",
+      "properties": {
+        "occupancy": { "type": "string" },
+        "lighting": { "type": "string" },
+        "camera_health": { "type": "string" },
+        "environment": { "type": "string" },
+        "energy": { "type": "string" }
+      },
+      "required": ["occupancy", "lighting", "camera_health", "environment", "energy"],
+      "additionalProperties": false
+    },
+    "RoomState": {
+      "type": "object",
+      "properties": {
+        "room_id": {
+          "type": "string",
+          "enum": ["seminar_hall", "classroom", "lab", "office"]
+        },
+        "name": { "type": "string" },
+        "occupancy": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Current count of occupants, or null if unknown."
+        },
+        "occupancy_status": {
+          "type": "string",
+          "enum": ["known", "unknown"],
+          "description": "Indicates whether occupancy is currently known or unknown."
+        },
+        "confidence": {
+          "type": ["number", "null"],
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "light_state": {
+          "type": "string",
+          "enum": ["on", "off", "unknown"]
+        },
+        "light_source": {
+          "type": ["string", "null"],
+          "enum": ["manual", "simulated", "unknown", null]
+        },
+        "camera_status": {
+          "type": "string",
+          "enum": ["online", "offline", "stale", "unknown"]
+        },
+        "last_event_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "vacancy_seconds": {
+          "type": ["number", "null"],
+          "minimum": 0.0,
+          "description": "Duration in seconds room has been observed with 0 occupants, or null if occupied/unknown."
+        },
+        "environmental_data": {
+          "anyOf": [
+            { "$ref": "#/$defs/EnvironmentalReadings" },
+            { "type": "null" }
+          ]
+        },
+        "energy_data": {
+          "anyOf": [
+            { "$ref": "#/$defs/EnergyReadings" },
+            { "type": "null" }
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/RoomProvenance"
+        },
+        "anomalies": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/AnomalyAlert" }
+        }
+      },
+      "required": [
+        "room_id",
+        "name",
+        "occupancy",
+        "occupancy_status",
+        "confidence",
+        "light_state",
+        "light_source",
+        "camera_status",
+        "last_event_at",
+        "vacancy_seconds",
+        "environmental_data",
+        "energy_data",
+        "provenance",
+        "anomalies"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

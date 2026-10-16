@@ -1,7 +1,17 @@
-# Byte-compiled / optimized / DLL files
+# Python bytecode & cache
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
 
 # C extensions
 *.so
@@ -26,35 +36,24 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Virtual environments
+# Virtual environments & secrets
 .env
-.venv
+.venv/
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
 
-# Testing & coverage
-.pytest_cache/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-
 # Local cache & indices
 .index_cache
 *.log
 
-# IDE & OS
+# OS & Editor metadata
+.DS_Store
+Thumbs.db
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.DS_Store
-Thumbs.db
