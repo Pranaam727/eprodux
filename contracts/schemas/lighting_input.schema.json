@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eprodux.internal/schemas/lighting_input.schema.json",
+  "title": "LightingInput",
+  "description": "Manual or simulated lighting state input. This reflects the twin representation only and does not issue direct equipment-control commands. Lighting must never be reported as CV-detected.",
+  "type": "object",
+  "properties": {
+    "room_id": {
+      "type": "string",
+      "enum": ["seminar_hall", "classroom", "lab", "office"],
+      "description": "Canonical room identifier."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp with timezone when the lighting status was asserted."
+    },
+    "light_state": {
+      "type": "string",
+      "enum": ["on", "off", "unknown"],
+      "description": "Reported operational state of the room lighting."
+    },
+    "source": {
+      "type": "string",
+      "enum": ["manual", "simulated", "unknown"],
+      "description": "Origin of the lighting state update."
+    }
+  },
+  "required": ["room_id", "timestamp", "light_state", "source"],
+  "additionalProperties": false
+}
