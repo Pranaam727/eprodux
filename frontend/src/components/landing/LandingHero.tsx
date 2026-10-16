@@ -1,5 +1,5 @@
 // ============================================================
-// LandingHero.tsx — EcoTwin Architectural 3D Hero Section
+// LandingHero.tsx — Eprodux 3D Hero Section
 // ============================================================
 
 import { DigitalTwin3D } from '../DigitalTwin3D';
@@ -10,7 +10,7 @@ interface Props {
   selectedRoomId: RoomId | null;
   onRoomSelect: (roomId: RoomId) => void;
   onOpenUpload: () => void;
-  onExploreTwin: () => void;
+  onLaunchDashboard: () => void;
 }
 
 export function LandingHero({
@@ -18,7 +18,7 @@ export function LandingHero({
   selectedRoomId,
   onRoomSelect,
   onOpenUpload,
-  onExploreTwin,
+  onLaunchDashboard,
 }: Props) {
   return (
     <section
@@ -40,7 +40,7 @@ export function LandingHero({
         }}
         className="hero-grid"
       >
-        {/* Left Copy Column */}
+        {/* Left Column */}
         <div>
           {/* Eyebrow */}
           <div
@@ -97,38 +97,38 @@ export function LandingHero({
               maxWidth: 580,
             }}
           >
-            Turn building footage and resource data into an interactive digital twin with occupancy insights,
-            sustainability recommendations and energy-saving simulations.
+            Turn building video and resource data into an intelligent digital twin. Understand occupancy,
+            discover energy waste, and make smarter sustainability decisions.
           </p>
 
           {/* CTAs */}
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 28 }}>
             <button
               type="button"
-              onClick={onOpenUpload}
+              onClick={onLaunchDashboard}
               className="btn btn--primary"
               style={{
-                padding: '12px 24px',
-                fontSize: '0.92rem',
+                padding: '12px 26px',
+                fontSize: '0.94rem',
                 borderRadius: 'var(--radius-md)',
-                boxShadow: '0 4px 20px rgba(16, 185, 129, 0.35)',
+                boxShadow: '0 4px 24px rgba(16, 185, 129, 0.4)',
               }}
             >
-              📹 Upload Video
+              ⚡ Launch Dashboard
             </button>
 
             <button
               type="button"
-              onClick={onExploreTwin}
+              onClick={onOpenUpload}
               className="btn btn--secondary"
               style={{
                 padding: '12px 24px',
-                fontSize: '0.92rem',
+                fontSize: '0.94rem',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid rgba(255, 255, 255, 0.15)',
               }}
             >
-              🏢 Explore Digital Twin
+              📹 Upload Video
             </button>
           </div>
 
@@ -149,7 +149,7 @@ export function LandingHero({
           >
             <span style={{ fontSize: '1rem' }}>🛡️</span>
             <span>
-              Recorded video supported · No face recognition · No frame storage by EcoTwin's CV pipeline
+              Recorded video supported · No face recognition · No frame storage by Eprodux CV pipeline
             </span>
           </div>
         </div>
@@ -193,7 +193,7 @@ export function LandingHero({
             }}
           >
             <span className="status-dot status-dot--on" />
-            <span>Interactive 3D Floor Canvas · 4 Monitored Zones</span>
+            <span>Interactive 3D University Floor · 4 Canonical Rooms</span>
           </div>
         </div>
       </div>

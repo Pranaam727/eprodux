@@ -1,49 +1,40 @@
 // ============================================================
-// LandingHowItWorks.tsx — 5-Stage Architecture Pipeline
-// Sense → See → Twin → Think → Act
+// LandingHowItWorks.tsx — 4-Stage Operational Workflow
+// Upload Video → Analyze Occupancy → Build Digital Twin → Generate Recommendations
 // ============================================================
-
 
 const STAGES = [
   {
     step: '1',
-    name: 'Sense',
-    tag: 'Input Streams',
-    icon: '📡',
-    desc: 'Recorded video footage captures physical spaces. Meter readings, CO₂, and temperature inputs are modeled and ingested.',
-    provenance: 'Recorded video + simulated environmental sensors',
+    name: 'Upload Video',
+    tag: 'Input Footage',
+    icon: '📹',
+    desc: 'Upload recorded university hallway or room footage (MP4, MOV, AVI). Video remains local to the processing pipeline with no raw frames persisted.',
+    provenance: 'Recorded video source · No face storage',
   },
   {
     step: '2',
-    name: 'See',
-    tag: 'Computer Vision',
+    name: 'Analyze Occupancy',
+    tag: 'CV Inference',
     icon: '👁️',
-    desc: 'YOLOv8 detects occupants and ByteTrack estimates headcount per zone. Privacy-first: no facial recognition, no frame storage.',
-    provenance: 'CV Headcount Inference',
+    desc: 'The YOLOv8 + ByteTrack pipeline processes footage at up to 30 FPS, generating timestamped headcount events across monitored campus zones.',
+    provenance: 'Edge Headcount Inference',
   },
   {
     step: '3',
-    name: 'Twin',
-    tag: 'Digital Backend',
+    name: 'Build Digital Twin',
+    tag: 'Spatial State',
     icon: '🏛️',
-    desc: 'Maintains canonical building state across Seminar Hall, Classroom, Lab, and Office. Correlates manual lighting and detects idle anomalies.',
-    provenance: 'Single Source of Truth',
+    desc: 'In-memory state engine correlates headcount with lighting states (ON/OFF/UNKNOWN) and simulates power meter and CO₂ readings.',
+    provenance: 'Centralized Digital Twin Model',
   },
   {
     step: '4',
-    name: 'Think',
-    tag: 'GenAI Advisory',
+    name: 'Generate Recommendations',
+    tag: 'GenAI & Math',
     icon: '🧠',
-    desc: 'Claude API and RAG analyze twin summaries against sustainability guidelines. Produces prioritized action items with deterministic savings math.',
-    provenance: 'Deterministic Savings + RAG Guidelines',
-  },
-  {
-    step: '5',
-    name: 'Act',
-    tag: 'Interactive Control',
-    icon: '⚡',
-    desc: 'Facility managers review grounded recommendations, simulate what-if energy scenarios, and take proactive conservation actions.',
-    provenance: 'Advisory Review & Human-in-the-Loop',
+    desc: 'Claude API and RAG analyze twin summaries against sustainability guidelines, producing verified actions with deterministic savings calculations.',
+    provenance: 'Deterministic Savings (₹, kWh, CO₂)',
   },
 ];
 
@@ -69,22 +60,22 @@ export function LandingHowItWorks() {
             marginBottom: 8,
           }}
         >
-          ARCHITECTURE & PIPELINE
+          STEP-BY-STEP WORKFLOW
         </div>
         <h2 style={{ fontSize: 'clamp(1.8rem, 3vw, 2.4rem)', fontWeight: 800, marginBottom: 12 }}>
-          From raw footage to sustainable building intelligence.
+          How Eprodux works.
         </h2>
-        <p style={{ color: 'var(--text-secondary)', maxWidth: 640, margin: '0 auto', fontSize: '0.95rem' }}>
-          Five decoupled, independently testable stages turn university camera footage and telemetry into verifiable energy conservation.
+        <p style={{ color: 'var(--text-secondary)', maxWidth: 640, margin: '0 auto', fontSize: '0.90rem' }}>
+          From raw campus footage to verified, audit-ready energy conservation recommendations.
         </p>
       </div>
 
-      {/* 5 Stages Grid */}
+      {/* 4 Stages Grid */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: 16,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: 20,
           position: 'relative',
         }}
       >
@@ -130,11 +121,11 @@ export function LandingHowItWorks() {
               <span className="badge badge--gray">{s.tag}</span>
             </div>
 
-            <div style={{ fontSize: '1.75rem', marginBottom: 8 }}>{s.icon}</div>
+            <div style={{ fontSize: '2rem', marginBottom: 8 }}>{s.icon}</div>
 
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: 8 }}>{s.name}</h3>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 8 }}>{s.name}</h3>
 
-            <p style={{ fontSize: '0.80rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 16, flex: 1 }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55, marginBottom: 16, flex: 1 }}>
               {s.desc}
             </p>
 
@@ -142,7 +133,7 @@ export function LandingHowItWorks() {
               style={{
                 fontSize: '0.68rem',
                 color: 'var(--text-muted)',
-                paddingTop: 8,
+                paddingTop: 10,
                 borderTop: '1px solid var(--border-subtle)',
               }}
             >

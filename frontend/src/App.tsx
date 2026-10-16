@@ -1,7 +1,8 @@
 // ============================================================
-// App.tsx – EcoTwin Root Component
-// Integrates 3D Landing Page, Video Upload Workflow, and
-// Full Digital Twin Operational Dashboard.
+// App.tsx — Eprodux Root Application
+// 1. Premium Interactive 3D Landing Page
+// 2. Video Upload & CV Analysis Workflow
+// 3. Full Sustainability Dashboard Suite (7 Pages)
 // ============================================================
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -26,29 +27,30 @@ import {
   IS_DEMO,
 } from './services/api';
 
-import { AppHeader } from './components/AppHeader';
-import { KPICards } from './components/KPICards';
-import { FloorPlan } from './components/FloorPlan';
-import { RoomDetailPanel } from './components/RoomDetailPanel';
-import { AlertPanel } from './components/AlertPanel';
-import { RecommendationPanel } from './components/RecommendationPanel';
-import { WhatIfSimulator } from './components/WhatIfSimulator';
-import { AnalyticsChart } from './components/AnalyticsChart';
-import { ChatAssistant } from './components/ChatAssistant';
-
 // Landing Page Components
 import { LandingHeader } from './components/landing/LandingHeader';
 import { LandingHero } from './components/landing/LandingHero';
+import { LandingFeatures } from './components/landing/LandingFeatures';
 import { LandingHowItWorks } from './components/landing/LandingHowItWorks';
 import { LandingFourRooms } from './components/landing/LandingFourRooms';
 import { LandingInsights } from './components/landing/LandingInsights';
-import { LandingTechStack } from './components/landing/LandingTechStack';
+import { LandingFinalCta } from './components/landing/LandingFinalCta';
 import { LandingTransparency } from './components/landing/LandingTransparency';
 import { LandingFooter } from './components/landing/LandingFooter';
 
 // Video Modals
 import { VideoUploadModal } from './components/VideoUploadModal';
 import { AnalysisResultsModal } from './components/AnalysisResultsModal';
+
+// Dashboard Components
+import { DashboardLayout, type DashboardPage } from './components/dashboard/DashboardLayout';
+import { OverviewPage } from './components/dashboard/OverviewPage';
+import { DigitalTwinPage } from './components/dashboard/DigitalTwinPage';
+import { VideoAnalysisPage } from './components/dashboard/VideoAnalysisPage';
+import { EnergyPage } from './components/dashboard/EnergyPage';
+import { RecommendationsPage } from './components/dashboard/RecommendationsPage';
+import { ReportsPage } from './components/dashboard/ReportsPage';
+import { SettingsPage } from './components/dashboard/SettingsPage';
 
 // ---------------------------------------------------------------
 // Toast notification system
@@ -70,11 +72,12 @@ function useToasts() {
   return { toasts, show };
 }
 
-// ---------------------------------------------------------------
-// Main App Component
-// ---------------------------------------------------------------
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'landing' | 'overview' | 'simulator' | 'charts' | 'assistant'>('landing');
+  // Top-level View State: 'landing' vs 'dashboard'
+  const [appMode, setAppMode] = useState<'landing' | 'dashboard'>('landing');
+  const [dashboardPage, setDashboardPage] = useState<DashboardPage>('overview');
+
+  // Building State & Telemetry
   const [floorState, setFloorState] = useState<FloorState | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
@@ -85,7 +88,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Video Upload & Analysis Modal States
+  // Video Upload & Results
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isResultsModalOpen, setIsResultsModalOpen] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<VideoAnalysisResult | null>(null);
@@ -94,7 +97,7 @@ export default function App() {
   const wsCleanupRef = useRef<(() => void) | null>(null);
 
   // ---------------------------------------------------------------
-  // Initial data load
+  // Initial Data Ingestion
   // ---------------------------------------------------------------
   useEffect(() => {
     let cancelled = false;
@@ -118,8 +121,8 @@ export default function App() {
         setLoadError(null);
       } catch (err) {
         if (cancelled) return;
-        setLoadError('Failed to load dashboard data. Using demo data if available.');
-        console.error('[eprodux] Load error:', err);
+        setLoadError('Connecting in Standalone/Demo mode. Backend telemetry simulated.');
+        console.warn('[eprodux] Load notice:', err);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -132,7 +135,7 @@ export default function App() {
   }, []);
 
   // ---------------------------------------------------------------
-  // WebSocket – live push (no-op in demo mode)
+  // Live WebSocket Push (Live Mode)
   // ---------------------------------------------------------------
   useEffect(() => {
     if (IS_DEMO) return;
@@ -153,14 +156,14 @@ export default function App() {
   }, [showToast]);
 
   // ---------------------------------------------------------------
-  // Recommendation accept / dismiss
+  // Recommendation Actions
   // ---------------------------------------------------------------
   const handleAccept = useCallback(
     async (id: string) => {
       setRecommendations((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: 'accepted' } : r)),
       );
-      showToast('Recommendation accepted for review. No physical device was changed.', 'success');
+      showToast('Recommendation accepted for review. No physical hardware was changed.', 'success');
       await acceptRecommendation(id);
     },
     [showToast],
@@ -171,445 +174,246 @@ export default function App() {
       setRecommendations((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: 'dismissed' } : r)),
       );
-      showToast('Recommendation dismissed.', 'info');
+      showToast('Recommendation dismissed from active audit.', 'info');
       await dismissRecommendation(id);
     },
     [showToast],
   );
 
   // ---------------------------------------------------------------
-  // Video Analysis Handlers
+  // Video Analysis Completion Workflow
   // ---------------------------------------------------------------
-  const handleAnalysisComplete = useCallback((result: VideoAnalysisResult) => {
-    setAnalysisResult(result);
-    setIsResultsModalOpen(true);
-    showToast(`Video analysis finished: ${result.fileName}`, 'success');
+  const handleAnalysisComplete = useCallback(
+    (result: VideoAnalysisResult) => {
+      setAnalysisResult(result);
+      showToast(`Video analysis completed: ${result.fileName}`, 'success');
 
-    // Optionally reflect observation into local floorState if relevant
-    setFloorState((prev) => {
-      if (!prev) return prev;
-      const updatedRooms = { ...prev.rooms };
-      Object.entries(result.observations).forEach(([roomId, obs]) => {
-        const id = roomId as RoomId;
-        if (updatedRooms[id]) {
-          updatedRooms[id] = {
-            ...updatedRooms[id],
-            occupancy: obs.currentOccupancy,
-            confidence: obs.confidence,
-            lastUpdated: obs.freshnessIso,
-          };
-        }
+      // Reflect detected zone headcounts into floor state
+      setFloorState((prev) => {
+        if (!prev) return prev;
+        const updatedRooms = { ...prev.rooms };
+        Object.entries(result.observations).forEach(([roomId, obs]) => {
+          const id = roomId as RoomId;
+          if (updatedRooms[id]) {
+            updatedRooms[id] = {
+              ...updatedRooms[id],
+              occupancy: obs.currentOccupancy,
+              confidence: obs.confidence,
+              lastUpdated: obs.freshnessIso,
+            };
+          }
+        });
+        return {
+          ...prev,
+          rooms: updatedRooms,
+        };
       });
-      return {
-        ...prev,
-        rooms: updatedRooms,
-      };
-    });
-  }, [showToast]);
 
-  const handleInspectRoomFromResults = useCallback((roomId: RoomId) => {
-    setSelectedRoomId(roomId);
-    setIsResultsModalOpen(false);
-    // Smooth scroll to 3D canvas or rooms section
-    const el = document.getElementById('hero-section') || document.getElementById('twin-section');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  }, []);
+      // Transition to Dashboard Video Analysis page
+      setAppMode('dashboard');
+      setDashboardPage('video');
+    },
+    [showToast],
+  );
 
   // ---------------------------------------------------------------
-  // Derived values
-  // ---------------------------------------------------------------
-  const activeAlerts = alerts.filter((a) => a.status === 'active');
-  const potentialSavingsKwh = recommendations
-    .filter((r) => r.status === 'pending')
-    .reduce((sum, r) => sum + r.estimatedEnergySavedKwh, 0);
-
-  const selectedRoom = selectedRoomId && floorState ? floorState.rooms[selectedRoomId] : null;
-
-  // ---------------------------------------------------------------
-  // Loading state
+  // Loading Shimmer Screen
   // ---------------------------------------------------------------
   if (isLoading) {
     return (
       <div className="app-layout">
-        <div style={{ padding: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-            <div className="brand-logo" style={{ background: 'linear-gradient(135deg, #10b981, #06b6d4)' }}>
-              ET
-            </div>
-            <div className="brand-name" style={{ background: 'linear-gradient(90deg, #10b981, #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              EcoTwin
-            </div>
+        <div style={{ padding: 32, maxWidth: 1200, margin: '0 auto', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
+            <div className="brand-logo">EP</div>
+            <div className="brand-name">Eprodux</div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 12 }}>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="loading-shimmer" style={{ height: 90 }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="loading-shimmer" style={{ height: 100 }} />
             ))}
           </div>
-          <div className="loading-shimmer" style={{ height: 360, marginTop: 16 }} />
+          <div className="loading-shimmer" style={{ height: 420, marginTop: 24 }} />
         </div>
       </div>
     );
   }
 
   // ---------------------------------------------------------------
-  // Render
+  // Render: 3D Landing Page vs Enterprise Dashboard
   // ---------------------------------------------------------------
   return (
-    <div className="app-layout">
-      {/* Dynamic Header based on active tab */}
-      {activeTab === 'landing' ? (
-        <LandingHeader
-          floorState={floorState}
-          onOpenUpload={() => setIsUploadModalOpen(true)}
-          onNavigateToDashboard={() => setActiveTab('overview')}
-        />
-      ) : (
-        <AppHeader
-          floorState={floorState}
-          lastUpdate={lastUpdate}
-          activeTab={activeTab}
-          onTabChange={(tab: any) => setActiveTab(tab)}
-          onOpenUpload={() => setIsUploadModalOpen(true)}
-        />
-      )}
-
+    <>
       {loadError && (
         <div
           style={{
-            margin: '8px 16px 0',
-            padding: '8px 16px',
+            padding: '8px 20px',
             background: 'var(--alert-warning-bg)',
-            borderRadius: 8,
-            border: '1px solid rgba(245,158,11,0.3)',
-            fontSize: '0.75rem',
+            borderBottom: '1px solid rgba(245,158,11,0.3)',
+            fontSize: '0.74rem',
             color: 'var(--alert-warning)',
+            textAlign: 'center',
           }}
           role="alert"
         >
-          ⚠️ {loadError}
+          ℹ️ {loadError}
         </div>
       )}
 
-      {/* ── 3D LANDING PAGE VIEW ── */}
-      {activeTab === 'landing' && (
-        <main role="main">
-          <LandingHero
+      {appMode === 'landing' ? (
+        // ── 1. 3D LANDING PAGE ──
+        <div className="app-layout">
+          <LandingHeader
             floorState={floorState}
-            selectedRoomId={selectedRoomId}
-            onRoomSelect={(id) => setSelectedRoomId((prev) => (prev === id ? null : id))}
             onOpenUpload={() => setIsUploadModalOpen(true)}
-            onExploreTwin={() => {
-              const el = document.getElementById('twin-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            onLaunchDashboard={() => {
+              setAppMode('dashboard');
+              setDashboardPage('overview');
             }}
           />
 
-          {/* Selected Room Details Drawer when room is clicked in 3D scene */}
-          {selectedRoom && (
-            <div style={{ maxWidth: 1600, margin: '0 auto 24px', padding: '0 24px' }}>
-              <RoomDetailPanel
-                room={selectedRoom}
-                alerts={alerts}
-                recommendations={recommendations}
-                onClose={() => setSelectedRoomId(null)}
-              />
-            </div>
-          )}
-
-          {/* Sustainability KPI Cards Row */}
-          <div style={{ maxWidth: 1600, margin: '0 auto', padding: '0 24px' }}>
-            <KPICards
-              floorState={floorState}
-              activeAlerts={activeAlerts}
-              potentialSavingsKwh={potentialSavingsKwh}
-            />
-          </div>
-
-          <LandingHowItWorks />
-
-          <LandingFourRooms
-            floorState={floorState}
-            selectedRoomId={selectedRoomId}
-            onRoomSelect={(id) => {
-              setSelectedRoomId(id);
-              const el = document.getElementById('hero-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
-          />
-
-          <LandingInsights
-            recommendations={recommendations}
-            onAccept={handleAccept}
-            onDismiss={handleDismiss}
-            onExploreInsights={() => setActiveTab('assistant')}
-          />
-
-          <LandingTechStack />
-
-          <LandingTransparency />
-
-          <LandingFooter />
-        </main>
-      )}
-
-      {/* ── OPERATIONS TWIN / OVERVIEW TAB ── */}
-      {activeTab === 'overview' && (
-        <main className="main-content" role="main">
-          {/* Left column */}
-          <div>
-            <KPICards
-              floorState={floorState}
-              activeAlerts={activeAlerts}
-              potentialSavingsKwh={potentialSavingsKwh}
-            />
-
-            <FloorPlan
+          <main role="main">
+            <LandingHero
               floorState={floorState}
               selectedRoomId={selectedRoomId}
               onRoomSelect={(id) => setSelectedRoomId((prev) => (prev === id ? null : id))}
+              onOpenUpload={() => setIsUploadModalOpen(true)}
+              onLaunchDashboard={() => {
+                setAppMode('dashboard');
+                setDashboardPage('overview');
+              }}
             />
 
-            {selectedRoom && (
-              <div style={{ marginTop: 16 }}>
-                <RoomDetailPanel
-                  room={selectedRoom}
-                  alerts={alerts}
-                  recommendations={recommendations}
-                  onClose={() => setSelectedRoomId(null)}
-                />
-              </div>
-            )}
+            <LandingFeatures />
 
-            <div style={{ marginTop: 16 }}>
-              <AlertPanel alerts={alerts} />
-            </div>
+            <LandingHowItWorks />
 
-            <div style={{ marginTop: 16 }}>
-              <div className="card">
-                <RecommendationPanel
-                  recommendations={recommendations}
-                  onAccept={handleAccept}
-                  onDismiss={handleDismiss}
-                />
-              </div>
-            </div>
-          </div>
+            <LandingFourRooms
+              floorState={floorState}
+              selectedRoomId={selectedRoomId}
+              onRoomSelect={(id) => {
+                setSelectedRoomId(id);
+                const el = document.getElementById('hero-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+            />
 
-          {/* Right sidebar */}
-          <div className="sidebar">
-            {/* Quick Upload Video Widget */}
-            <div className="card card--compact" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(6,182,212,0.05))', border: '1px solid var(--border-accent)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <span style={{ fontSize: '1.4rem' }}>📹</span>
-                <div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>Upload Video Footage</div>
-                  <div style={{ fontSize: '0.70rem', color: 'var(--text-muted)' }}>Analyze room occupancy with YOLOv8</div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsUploadModalOpen(true)}
-                className="btn btn--primary btn--sm w-full"
-                style={{ justifyContent: 'center' }}
-              >
-                Launch Video Analysis
-              </button>
-            </div>
+            <LandingInsights
+              recommendations={recommendations}
+              onAccept={handleAccept}
+              onDismiss={handleDismiss}
+              onExploreInsights={() => {
+                setAppMode('dashboard');
+                setDashboardPage('recommendations');
+              }}
+            />
 
-            {/* Pipeline status card */}
-            <div className="card card--compact">
-              <div className="section-title" style={{ marginBottom: 12 }}>
-                Pipeline Status
-              </div>
-              {([
-                {
-                  step: 'Sense',
-                  desc: 'Camera & meter events',
-                  status: floorState?.connectionState === 'connected' ? 'on' : 'offline',
-                },
-                { step: 'See', desc: 'CV occupancy estimation', status: 'on' },
-                { step: 'Twin', desc: 'Digital room state', status: 'on' },
-                { step: 'Think', desc: 'GenAI recommendations', status: IS_DEMO ? 'unknown' : 'on' },
-                { step: 'Act', desc: 'Human review & what-if', status: 'on' },
-              ] as const).map((item, i) => (
-                <div
-                  key={item.step}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '6px 0',
-                    borderBottom: i < 4 ? '1px solid var(--border-subtle)' : 'none',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: '50%',
-                      background:
-                        item.status === 'on'
-                          ? 'var(--accent-green-bg)'
-                          : item.status === 'offline'
-                          ? 'var(--alert-critical-bg)'
-                          : 'rgba(245,158,11,0.1)',
-                      border: `1px solid ${
-                        item.status === 'on'
-                          ? 'var(--accent-green)'
-                          : item.status === 'offline'
-                          ? 'var(--alert-critical)'
-                          : 'var(--alert-warning)'
-                      }`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '0.70rem',
-                      fontWeight: 700,
-                      color:
-                        item.status === 'on'
-                          ? 'var(--accent-green)'
-                          : item.status === 'offline'
-                          ? 'var(--alert-critical)'
-                          : 'var(--alert-warning)',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {i + 1}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 600 }}>{item.step}</div>
-                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{item.desc}</div>
-                  </div>
-                  <div style={{ marginLeft: 'auto' }}>
-                    <span
-                      className={`status-dot status-dot--${item.status}${
-                        item.status === 'on' ? ' status-dot--pulse' : ''
-                      }`}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <LandingFinalCta
+              onLaunchDashboard={() => {
+                setAppMode('dashboard');
+                setDashboardPage('overview');
+              }}
+              onOpenUpload={() => setIsUploadModalOpen(true)}
+            />
 
-            {/* Mode explanation */}
-            {IS_DEMO && (
-              <div className="card card--compact">
-                <div className="demo-banner" style={{ borderRadius: 8 }}>
-                  <span>⚗️</span>
-                  <div>
-                    <div style={{ fontWeight: 700, marginBottom: 4 }}>Demo Mode Active</div>
-                    <div style={{ fontWeight: 400 }}>
-                      All data on this dashboard is <strong>simulated</strong> for demonstration.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            <LandingTransparency />
 
-            {/* Quick room status list */}
-            {floorState && (
-              <div className="card card--compact">
-                <div className="section-title" style={{ marginBottom: 12 }}>
-                  Room Status
-                </div>
-                {(Object.values(floorState.rooms) as import('./types').RoomState[]).map((room) => (
-                  <button
-                    key={room.id}
-                    id={`room-btn-${room.id}`}
-                    onClick={() => {
-                      setSelectedRoomId(room.id);
-                    }}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '8px 0',
-                      borderBottom: '1px solid var(--border-subtle)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                    }}
-                    aria-label={`View ${room.name} details`}
-                  >
-                    <span
-                      className={`status-dot status-dot--${
-                        room.connectionState === 'offline'
-                          ? 'offline'
-                          : room.lightState === 'ON'
-                          ? 'on'
-                          : 'off'
-                      }`}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {room.name}
-                      </div>
-                      <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                        {room.occupancy != null ? `${room.occupancy} occupants` : 'Occupancy UNKNOWN'} ·{' '}
-                        {room.lightState} (manual)
-                      </div>
-                    </div>
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>›</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </main>
+            <LandingFooter />
+          </main>
+        </div>
+      ) : (
+        // ── 2. ENTERPRISE SUSTAINABILITY DASHBOARD ──
+        <DashboardLayout
+          currentPage={dashboardPage}
+          onPageChange={setDashboardPage}
+          onBackToLanding={() => setAppMode('landing')}
+          onOpenUpload={() => setIsUploadModalOpen(true)}
+          floorState={floorState}
+          lastUpdate={lastUpdate}
+        >
+          {dashboardPage === 'overview' && (
+            <OverviewPage
+              floorState={floorState}
+              alerts={alerts}
+              recommendations={recommendations}
+              energyHistory={energyHistory}
+              occupancyHistory={occupancyHistory}
+              selectedRoomId={selectedRoomId}
+              onRoomSelect={setSelectedRoomId}
+              onAcceptRec={handleAccept}
+              onDismissRec={handleDismiss}
+              onNavigateToTwin={() => setDashboardPage('twin')}
+            />
+          )}
+
+          {dashboardPage === 'twin' && (
+            <DigitalTwinPage
+              floorState={floorState}
+              alerts={alerts}
+              recommendations={recommendations}
+              selectedRoomId={selectedRoomId}
+              onRoomSelect={setSelectedRoomId}
+            />
+          )}
+
+          {dashboardPage === 'video' && (
+            <VideoAnalysisPage
+              latestResult={analysisResult}
+              onAnalysisSuccess={handleAnalysisComplete}
+              onInspectIn3D={(roomId) => {
+                setSelectedRoomId(roomId);
+                setDashboardPage('twin');
+              }}
+            />
+          )}
+
+          {dashboardPage === 'energy' && (
+            <EnergyPage
+              floorState={floorState}
+            />
+          )}
+
+          {dashboardPage === 'recommendations' && (
+            <RecommendationsPage
+              recommendations={recommendations}
+              onAccept={handleAccept}
+              onDismiss={handleDismiss}
+            />
+          )}
+
+          {dashboardPage === 'reports' && (
+            <ReportsPage
+              floorState={floorState}
+              alerts={alerts}
+              recommendations={recommendations}
+            />
+          )}
+
+          {dashboardPage === 'settings' && (
+            <SettingsPage floorState={floorState} />
+          )}
+        </DashboardLayout>
       )}
 
-      {/* ── SIMULATOR TAB ── */}
-      {activeTab === 'simulator' && (
-        <main style={{ maxWidth: 1200, margin: '0 auto', padding: 16, width: '100%' }} role="main">
-          <div className="card">
-            <WhatIfSimulator />
-          </div>
-        </main>
-      )}
-
-      {/* ── ANALYTICS TAB ── */}
-      {activeTab === 'charts' && (
-        <main style={{ maxWidth: 1200, margin: '0 auto', padding: 16, width: '100%' }} role="main">
-          <AnalyticsChart energyHistory={energyHistory} occupancyHistory={occupancyHistory} />
-          <div style={{ marginTop: 16 }}>
-            <div className="card">
-              <RecommendationPanel
-                recommendations={recommendations}
-                onAccept={handleAccept}
-                onDismiss={handleDismiss}
-              />
-            </div>
-          </div>
-        </main>
-      )}
-
-      {/* ── ASSISTANT TAB ── */}
-      {activeTab === 'assistant' && (
-        <main style={{ maxWidth: 900, margin: '0 auto', padding: 16, width: '100%' }} role="main">
-          <div className="card">
-            <ChatAssistant />
-          </div>
-        </main>
-      )}
-
-      {/* Video Upload Modal */}
+      {/* Video Upload Modal (Accessible from anywhere) */}
       <VideoUploadModal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onAnalysisComplete={handleAnalysisComplete}
       />
 
-      {/* Video Analysis Results Modal */}
+      {/* Analysis Results Inspector Modal */}
       <AnalysisResultsModal
         result={analysisResult}
         isOpen={isResultsModalOpen}
         onClose={() => setIsResultsModalOpen(false)}
-        onInspectRoom={handleInspectRoomFromResults}
+        onInspectRoom={(roomId) => {
+          setSelectedRoomId(roomId);
+          setAppMode('dashboard');
+          setDashboardPage('twin');
+        }}
       />
 
-      {/* Toast container */}
+      {/* Toast Notification Container */}
       <div className="toast-container" role="status" aria-live="polite">
         {toasts.map((t) => (
           <div key={t.id} className={`toast toast--${t.type}`}>
@@ -617,6 +421,6 @@ export default function App() {
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }

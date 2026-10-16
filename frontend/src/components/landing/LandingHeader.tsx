@@ -1,5 +1,5 @@
 // ============================================================
-// LandingHeader.tsx — EcoTwin Architectural Navigation Header
+// LandingHeader.tsx — Eprodux Top Navigation Bar
 // ============================================================
 
 import { IS_DEMO } from '../../services/api';
@@ -8,10 +8,10 @@ import type { FloorState } from '../../types';
 interface Props {
   floorState: FloorState | null;
   onOpenUpload: () => void;
-  onNavigateToDashboard: () => void;
+  onLaunchDashboard: () => void;
 }
 
-export function LandingHeader({ floorState, onOpenUpload, onNavigateToDashboard }: Props) {
+export function LandingHeader({ floorState, onOpenUpload, onLaunchDashboard }: Props) {
   const isConnected = floorState?.connectionState === 'connected';
 
   const scrollToSection = (id: string) => {
@@ -24,7 +24,7 @@ export function LandingHeader({ floorState, onOpenUpload, onNavigateToDashboard 
   return (
     <header className="app-header" style={{ position: 'sticky', top: 0, zIndex: 100 }}>
       {/* Brand */}
-      <div className="brand">
+      <div className="brand" onClick={() => scrollToSection('hero-section')} style={{ cursor: 'pointer' }}>
         <div
           className="brand-logo"
           style={{
@@ -32,7 +32,7 @@ export function LandingHeader({ floorState, onOpenUpload, onNavigateToDashboard 
             boxShadow: '0 0 16px rgba(16, 185, 129, 0.4)',
           }}
         >
-          ET
+          EP
         </div>
         <div>
           <div
@@ -43,9 +43,9 @@ export function LandingHeader({ floorState, onOpenUpload, onNavigateToDashboard 
               WebkitTextFillColor: 'transparent',
             }}
           >
-            EcoTwin
+            Eprodux
           </div>
-          <div className="brand-subtitle">University Building Digital Twin</div>
+          <div className="brand-subtitle">Make every building think greener.</div>
         </div>
       </div>
 
@@ -62,19 +62,11 @@ export function LandingHeader({ floorState, onOpenUpload, onNavigateToDashboard 
       >
         <button
           type="button"
-          onClick={() => scrollToSection('hero-section')}
+          onClick={() => scrollToSection('features-section')}
           className="tab-item"
           style={{ padding: '8px 12px', fontSize: '0.80rem' }}
         >
-          Overview
-        </button>
-        <button
-          type="button"
-          onClick={() => scrollToSection('twin-section')}
-          className="tab-item"
-          style={{ padding: '8px 12px', fontSize: '0.80rem' }}
-        >
-          3D Digital Twin
+          Features
         </button>
         <button
           type="button"
@@ -82,7 +74,15 @@ export function LandingHeader({ floorState, onOpenUpload, onNavigateToDashboard 
           className="tab-item"
           style={{ padding: '8px 12px', fontSize: '0.80rem' }}
         >
-          Pipeline
+          How It Works
+        </button>
+        <button
+          type="button"
+          onClick={() => scrollToSection('twin-section')}
+          className="tab-item"
+          style={{ padding: '8px 12px', fontSize: '0.80rem' }}
+        >
+          Digital Twin
         </button>
         <button
           type="button"
@@ -90,15 +90,7 @@ export function LandingHeader({ floorState, onOpenUpload, onNavigateToDashboard 
           className="tab-item"
           style={{ padding: '8px 12px', fontSize: '0.80rem' }}
         >
-          GenAI Insights
-        </button>
-        <button
-          type="button"
-          onClick={() => scrollToSection('transparency-section')}
-          className="tab-item"
-          style={{ padding: '8px 12px', fontSize: '0.80rem' }}
-        >
-          Transparency
+          Sustainability
         </button>
       </nav>
 
@@ -118,19 +110,18 @@ export function LandingHeader({ floorState, onOpenUpload, onNavigateToDashboard 
         <button
           type="button"
           onClick={onOpenUpload}
-          className="btn btn--primary btn--sm"
-          style={{ boxShadow: '0 0 12px rgba(16, 185, 129, 0.35)' }}
+          className="btn btn--secondary btn--sm"
         >
           📹 Upload Video
         </button>
 
         <button
           type="button"
-          onClick={onNavigateToDashboard}
-          className="btn btn--secondary btn--sm"
-          title="Open Operational Twin Dashboard"
+          onClick={onLaunchDashboard}
+          className="btn btn--primary btn--sm"
+          style={{ boxShadow: '0 0 16px rgba(16, 185, 129, 0.45)' }}
         >
-          ⚡ Operations Twin
+          ⚡ Launch Dashboard
         </button>
       </div>
     </header>
